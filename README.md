@@ -1,3 +1,12 @@
+# 📈 Finance Pulse
+
+![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Vite](https://img.shields.io/badge/Vite_5-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Deno](https://img.shields.io/badge/Deno-white?style=for-the-badge&logo=deno&logoColor=464647)
+
+---
 # Finance Pulse 💰
 
 A high-fidelity, role-based financial management platform built with React, Vite, and Supabase. Finance Pulse enables individuals to track their personal finances while giving institutional analysts and admins a real-time, platform-wide view of all transaction data.
@@ -11,7 +20,6 @@ A high-fidelity, role-based financial management platform built with React, Vite
 - **Personal Dashboard** with income, expenses, net balance, and spending breakdown
 - **Transaction Management**: Add, edit, and delete transactions with full category support
 - **Advanced Filtering**: Filter transaction history by type, category, description search, and date range
-- **Indian Rupee (₹) Localization** throughout the UI
 
 ### For Analysts & Admins
 - **Institutional Analytics Dashboard** with platform-wide aggregates (total users, volume, income vs. expenses)
@@ -25,6 +33,34 @@ A high-fidelity, role-based financial management platform built with React, Vite
 - **Zod validation** on the frontend for all transaction inputs
 
 ---
+
+## 🔐 Live Demo & Test Credentials
+
+To experience the platform's dynamic routing and role-based permissions, use the following test credentials to log in. 
+
+| Role | Email |Password| Permissions |
+| :--- | :--- | :--- | :--- |
+| **Viewer** | `viewer@gmail.com` | `viewer@123` | Standard access. Can only view, add, and delete their own personal transactions. |
+| **Analyst** | `analyst@gmail.com` | `analyst@123` | Institutional access. Can view personal data AND the macro-level Platform Analytics dashboard. |
+| **Admin** | `admin@gmail.com` | `admin123` | God-mode. Can view all dashboards, securely context-switch between users, and edit platform-wide data. |
+
+---
+
+## 🚀 Quick Start (Download & Run)
+
+Follow these instructions to download the source code and run the application on your local machine.
+
+### Prerequisites
+Before you begin, ensure you have the following installed:
+* [Node.js](https://nodejs.org/) (v18 or higher)
+* [Git](https://git-scm.com/)
+* [Supabase CLI](https://supabase.com/docs/guides/cli) (for running edge functions locally)
+
+### Step 1: Clone the Repository
+Download the code to your local machine:
+```bash
+git clone [https://github.com/Aditya-Singh-008/Finance-Pulse.git](https://github.com/Aditya-Singh-008/Finance-Pulse.git)
+cd Finance-Pulse
 
 ## 🏗 Architecture
 
