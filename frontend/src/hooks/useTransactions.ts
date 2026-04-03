@@ -23,7 +23,15 @@ export interface Transaction {
   } | null;
 }
 
-export const useTransactions = (limit: number = 5, selectedUserId: string | null = null) => {
+export interface TransactionFilters {
+  category_id?: string;
+  type?: 'income' | 'expense' | 'all';
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+}
+
+export const useTransactions = (limit: number = 5, selectedUserId: string | null = null, filters: TransactionFilters = {}) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +46,7 @@ export const useTransactions = (limit: number = 5, selectedUserId: string | null
       // Default to current user if no specific ID provided
       const targetUserId = selectedUserId || user.id;
 
-      const { data, error: sbError } = await supabase
+      let query = supabase
         .from('transactions')
         .select(`
           id,
@@ -49,14 +57,36 @@ export const useTransactions = (limit: number = 5, selectedUserId: string | null
           category_id,
           category:categories(name)
         `)
-        .eq('user_id', targetUserId)
+        .eq('user_id', targetUserId);
+
+      // Apply Filters
+      if (filters.category_id && filters.category_id !== 'all') {
+        query = query.eq('category_id', filters.category_id);
+      }
+      
+      if (filters.type && filters.type !== 'all') {
+        query = query.eq('type', filters.type);
+      }
+      
+      if (filters.startDate) {
+        query = query.gte('date', filters.startDate);
+      }
+      
+      if (filters.endDate) {
+        query = query.lte('date', filters.endDate);
+      }
+      
+      if (filters.search) {
+        query = query.ilike('description', `%${filters.search}%`);
+      }
+
+      const { data, error: sbError } = await query
         .order('date', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(limit);
 
       if (sbError) throw sbError;
       
-      console.log('DEBUG: Transactions Map From DB:', data);
       setTransactions((data as any) || []);
     } catch (err: any) {
       setError(err.message || 'Error fetching transactions');
@@ -64,7 +94,7 @@ export const useTransactions = (limit: number = 5, selectedUserId: string | null
     } finally {
       setLoading(false);
     }
-  }, [limit, selectedUserId]);
+  }, [limit, selectedUserId, JSON.stringify(filters)]); // Stringify filters to prevent effect loop
 
   useEffect(() => {
     fetchTransactions();

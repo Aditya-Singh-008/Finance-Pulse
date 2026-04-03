@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
+import { z } from 'zod';
 import { supabase } from '../../lib/supabaseClient';
 import {
   X,
@@ -64,6 +65,30 @@ const INITIAL_FORM_STATE: FormState = {
   date: getTodayISO(),
   description: '',
 };
+
+// ── Zod Validation Schema (Zod v4 compatible) ───────────────────────────────
+const transactionSchema = z.object({
+  amount: z
+    .string()
+    .min(1, 'Amount is required.')
+    .refine(v => !isNaN(parseFloat(v)) && parseFloat(v) > 0, {
+      message: 'Amount must be a positive number.',
+    })
+    .refine(v => {
+      const parts = v.split('.');
+      return !parts[1] || parts[1].length <= 2;
+    }, { message: 'Amount can have at most 2 decimal places.' }),
+  type: z.enum(['income' as const, 'expense' as const]),
+  category_id: z.string().min(1, 'Please select a category.'),
+  date: z
+    .string()
+    .min(1, 'Date is required.')
+    .refine(v => {
+      const d = new Date(v);
+      return !isNaN(d.getTime()) && d <= new Date();
+    }, { message: 'Date must be today or in the past.' }),
+  description: z.string().max(500, 'Description must be 500 characters or fewer.').optional(),
+});
 
 const FALLBACK_CATEGORIES: Category[] = [
   { id: 'food', name: 'Food & Dining' },
@@ -175,22 +200,18 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
     setSubmitError(null);
     setSubmitSuccess(false);
 
+    // ── Zod Validation ────────────────────────────────────────────────────────
+    const result = transactionSchema.safeParse(form);
+    if (!result.success) {
+      // Surface the first field error in the UI
+      const firstError = result.error.issues[0];
+      setSubmitError(firstError?.message ?? 'Please check all fields and try again.');
+      return;
+    }
+
     const parsedAmount = parseFloat(form.amount);
-
-    if (!form.amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      setSubmitError('Please enter a valid positive amount.');
-      return;
-    }
-    if (!form.category_id) {
-      setSubmitError('Please select a category.');
-      return;
-    }
-    if (!form.date) {
-      setSubmitError('Please select a date.');
-      return;
-    }
-
     setIsSubmitting(true);
+
 
     try {
       if (isEditMode) {

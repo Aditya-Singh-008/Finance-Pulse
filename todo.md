@@ -1,11 +1,11 @@
-# Project Status: Finance Pulse
+# Project Status: Finance Pulse ✅ COMPLETE
 
 ## 🚀 Overview
 Finance Pulse is a high-fidelity, role-based financial management platform. It features real-time data ingestion, multi-role dashboards (Admin, Analyst, Viewer), and institutional-grade data export capabilities.
 
 ---
 
-## ✅ Completed Milestones
+## ✅ All Phases Complete
 
 ### Phase 1: Database & Security (The Foundation)
 - [x] **PostgreSQL Schema**: Defined `profiles`, `transactions`, and `categories`.
@@ -19,43 +19,38 @@ Finance Pulse is a high-fidelity, role-based financial management platform. It f
 - [x] **CSV Export Engine** (Flex Feature): Secure, role-verified Deno function that generates a platform-wide audit trail in CSV format.
 
 ### Phase 3: Frontend & Institutional UX
-- [x] **Responsive Dashboards**: implemented a dual-mode UI (Individual User vs. Institutional Analyst).
-- [x] **Interactive Visualization**:
-    - [x] Added `Recharts` Donut charts for categorical breakdown.
-    - [x] Implemented "active shape" scaling for interactive focus.
-    - [x] Fixed "width -1" calculation warnings using a Mounting Guard + minHeight strategy.
-- [x] **Localization**: Updated currency symbols to Indian Rupee (₹) and established a sleek, theme-aware layout.
-- [x] **Component Library**: Created reusable items like `ExportCsvButton`, `TransactionForm`, and `TransactionList`.
+- [x] **Responsive Dashboards**: Dual-mode UI (Individual User vs. Institutional Analyst).
+- [x] **Interactive Visualization**: Recharts Donut charts with active-shape hover, fixed with Mounting Guard + minHeight.
+- [x] **Localization**: Indian Rupee (₹) currency, INR number formatting.
+- [x] **Component Library**: `ExportCsvButton`, `TransactionForm`, `TransactionList`, `ConfirmationModal`.
+
+### Phase 4: Refinement & Polish ← NOW COMPLETE
+- [x] **Advanced Filtering**: Filter transaction history by type, category, description search, and date range.
+  - `useTransactions` hook extended with `TransactionFilters` interface
+  - Server-side Supabase query modifiers (`.eq`, `.gte`, `.lte`, `.ilike`)
+  - Dynamic fetch limit: 5 (default) → 20 (when filters active)
+- [x] **Zod Validation**: `transactionSchema` added to `TransactionForm.tsx`
+  - Validates amount (positive, ≤2 decimal places), type, category, date (not future)
+  - `safeParse` replaces manual if-chain; surfaces first field error in the UI
+- [x] **README.md**: Full setup guide, architecture diagram, API reference, role matrix.
+- [x] **`.gitignore`**: Covers `node_modules`, `dist`, `.env` files, IDE configs, Deno cache.
 
 ---
 
 ## 🛠 Active Technical State
 
-### 1. CSV Export Flow
-- **Invoker**: `ExportCsvButton.tsx`
-- **Method**: `POST` (via `supabase.functions.invoke`)
-- **Backend**: `export-platform-csv/index.ts` (Deno runtime)
-- **Auth**: Uses JWT verification + `getUser()` to check for `admin` or `analyst` status before bypassing RLS via the Service Role Key.
+### Key Files
+| File | Purpose |
+|------|---------|
+| `frontend/src/hooks/useTransactions.ts` | Fetching with `TransactionFilters` support |
+| `frontend/src/components/dashboard/TransactionForm.tsx` | Zod-validated transaction entry |
+| `frontend/src/components/dashboard/TransactionList.tsx` | Filter UI + filtered data display |
+| `frontend/src/components/dashboard/AnalystDashboard.tsx` | Institutional analytics + CSV export |
+| `frontend/src/components/dashboard/ExportCsvButton.tsx` | POST-based CSV export via `supabase.functions.invoke` |
+| `supabase/functions/export-platform-csv/index.ts` | Deno edge fn (JSR imports, Zod-free, manual validation) |
 
-### 2. Analyst Dashboard Health
-- **Container**: `AnalystDashboard.tsx`
-- **Charting**: Uses `ResponsiveContainer` with a `mounted` state guard to prevent premature dimension calculation.
-- **Visuals**: Features a real-time "Platform Health" bar balance and a breakdown donut.
-
----
-
-## 📋 Remaining TODOs
-
-### Phase 4: Refinement & Polish
-- [ ] **Advanced Filtering**: Implement date range and category filters on the Transaction List.
-- [ ] **Global Error Boundary**: Add a top-level React Error Boundary for 403 Forbidden redirects if an unauthorized user manually hits an analyst route.
-- [ ] **Input Validation (Zod)**: Further tighten client-side validation in `TransactionForm.tsx`.
-- [ ] **Infrastructure Documentation**: finalize `README.md` with setup instructions and architecture map.
-
----
-
-## 🧐 Quick Glance for Future
-- **Stack**: React 19, Vite, Tailwind CSS v4, Lucide Icons.
-- **Backend**: Supabase Auth/DB + Deno Edge Functions.
-- **Charts**: Recharts (Requires `mounted` guard in conditional layouts).
-- **Currency**: INR (₹)
+### Technical Notes
+- **Charts**: `ResponsiveContainer` requires a `mounted` state guard + `height={400}` to avoid width(-1) warning.
+- **Zod version**: v4 — use `z.enum(['a' as const, 'b' as const])` instead of `z.enum(['a', 'b'])`.
+- **Edge Functions**: Use `jsr:@supabase/supabase-js@2` imports. Deno linting errors in IDE are false positives.
+- **Currency**: All formatting uses `en-IN` locale with `INR` currency.

@@ -10,9 +10,9 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTransactions } from '../../hooks/useTransactions';
-import type { Transaction } from '../../hooks/useTransactions';
+import type { Transaction, TransactionFilters } from '../../hooks/useTransactions';
 import { 
   ArrowUpRight, 
   ArrowDownRight, 
@@ -26,7 +26,6 @@ import {
 import TransactionForm from './TransactionForm';
 import type { Category } from './TransactionForm';
 import { supabase } from '../../lib/supabaseClient';
-import { useState } from 'react';
 import toast from 'react-hot-toast';
 import ConfirmationModal from '../common/ConfirmationModal';
 
@@ -43,7 +42,32 @@ const TransactionList: React.FC<TransactionListProps> = ({
     userRole = null,
     categories = []
 }) => {
-    const { transactions, loading, error, refetch } = useTransactions(5, selectedUserId);
+    // Local search term for the input — drives the UI immediately
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const [filters, setFilters] = useState<TransactionFilters>({
+        type: 'all',
+        category_id: 'all',
+        startDate: '',
+        endDate: '',
+        search: ''
+    });
+
+    // Debounce: sync searchTerm → filters.search after 400ms of inactivity
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setFilters(f => {
+                if (f.search === searchTerm) return f; // no-op if unchanged
+                return { ...f, search: searchTerm };
+            });
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    const isFilterActive = filters.type !== 'all' || filters.category_id !== 'all' || filters.startDate || filters.endDate || filters.search;
+    const fetchLimit = isFilterActive ? 20 : 5;
+
+    const { transactions, loading, error, refetch } = useTransactions(fetchLimit, selectedUserId, filters);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
     const [idToDelete, setIdToDelete] = useState<string | null>(null);
     const [editingTx, setEditingTx] = useState<Transaction | null>(null);
@@ -95,15 +119,6 @@ const TransactionList: React.FC<TransactionListProps> = ({
         });
     };
 
-    if (loading) {
-        return (
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center py-20 min-h-[400px]">
-                <Loader2 className="w-8 h-8 text-indigo-600 dark:text-indigo-400 animate-spin mb-4" />
-                <p className="text-slate-500 dark:text-slate-400 font-medium">Updating activity list...</p>
-            </div>
-        );
-    }
-
     if (error) {
         return (
             <div className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center py-20 text-center min-h-[400px]">
@@ -129,19 +144,68 @@ const TransactionList: React.FC<TransactionListProps> = ({
                     <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl">
                         <Clock className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                    <div>
-                        <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Recent Activity</h2>
-                        <p className="text-sm text-slate-400 dark:text-slate-500 font-medium uppercase tracking-widest">Your last 5 transactions</p>
-                    </div>
+                <div>
+                    <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Financial Activity</h2>
+                    <p className="text-sm text-slate-400 dark:text-slate-500 font-medium uppercase tracking-widest">
+                        {isFilterActive ? `Showing up to ${fetchLimit} matches` : 'Your last 5 transactions'}
+                    </p>
                 </div>
-                {/* Search Placeholder — Visual UI flourish */}
-                <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:border-indigo-200 transition-all">
-                    <Search className="w-4 h-4" />
+            </div>
+        </div>
+
+            {/* Advanced Filters Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 p-6 bg-slate-50 dark:bg-slate-950/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800/50">
+                {/* Search (debounced) */}
+                <div className="relative group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                    {loading && searchTerm !== filters.search && (
+                        <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400 animate-spin" />
+                    )}
                     <input 
                         type="text" 
-                        placeholder="Search history..." 
-                        className="bg-transparent border-none text-sm outline-none w-32 focus:w-48 transition-all text-slate-900 dark:text-slate-100 font-medium"
-                        disabled
+                        placeholder="Search description..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-medium"
+                    />
+                </div>
+
+                {/* Type Filter */}
+                <select 
+                    value={filters.type}
+                    onChange={(e) => setFilters(f => ({ ...f, type: e.target.value as any }))}
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-bold"
+                >
+                    <option value="all">Any Type</option>
+                    <option value="income">Income Only</option>
+                    <option value="expense">Expense Only</option>
+                </select>
+
+                {/* Category Filter */}
+                <select 
+                    value={filters.category_id}
+                    onChange={(e) => setFilters(f => ({ ...f, category_id: e.target.value }))}
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-bold"
+                >
+                    <option value="all">Any Category</option>
+                    {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                </select>
+
+                {/* Date Filter Toggle / Summary */}
+                <div className="flex gap-2">
+                    <input 
+                        type="date" 
+                        value={filters.startDate}
+                        onChange={(e) => setFilters(f => ({ ...f, startDate: e.target.value }))}
+                        className="w-1/2 px-3 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 dark:text-slate-300 font-bold"
+                    />
+                    <input 
+                        type="date" 
+                        value={filters.endDate}
+                        onChange={(e) => setFilters(f => ({ ...f, endDate: e.target.value }))}
+                        className="w-1/2 px-3 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 dark:text-slate-300 font-bold"
                     />
                 </div>
             </div>
