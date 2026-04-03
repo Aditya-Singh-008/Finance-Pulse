@@ -10,7 +10,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTransactions } from '../../hooks/useTransactions';
 import type { Transaction, TransactionFilters } from '../../hooks/useTransactions';
 import { 
