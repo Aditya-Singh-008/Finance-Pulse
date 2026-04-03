@@ -1,0 +1,19 @@
+category_name,amount,type,date,description
+Salary,5000.00,income,2026-03-05,Monthly Salary
+Freelance,1200.00,income,2026-03-13,Web Design Project
+Dividends,150.00,income,2026-03-18,Stock Dividends
+Sale,45.00,income,2026-03-28,Sold old monitor
+Bonus,500.00,income,2026-03-31,Performance Bonus
+Rent,1500.00,expense,2026-03-06,Apartment Rent
+Groceries,85.50,expense,2026-03-07,Weekly Grocery Shopping
+Transport,40.00,expense,2026-03-08,Monthly Bus Pass
+Utilities,120.00,expense,2026-03-11,Electricity & Water Bill
+Groceries,64.20,expense,2026-03-14,Mid-week Grocery Run
+Entertainment,55.00,expense,2026-03-15,Movie Night & Snacks
+Transport,32.00,expense,2026-03-19,Uber to Airport
+Entertainment,120.00,expense,2026-03-21,Concert Tickets
+Groceries,92.10,expense,2026-03-23,Bulk Grocery Haul
+Utilities,60.00,expense,2026-03-25,Internet Bill
+Transport,15.00,expense,2026-03-27,Parking Fee
+Entertainment,30.00,expense,2026-03-29,Dinner out
+Groceries,45.00,expense,2026-04-01,Fresh Produce

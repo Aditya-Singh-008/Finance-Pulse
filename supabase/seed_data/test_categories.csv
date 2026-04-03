@@ -1,0 +1,11 @@
+name,type
+Salary,income
+Freelance,income
+Bonus,income
+Dividends,income
+Sale,income
+Rent,expense
+Groceries,expense
+Utilities,expense
+Entertainment,expense
+Transport,expense

@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+/* 
+ * Enable class-based dark mode for Tailwind v4. 
+ * This allows us to use the .dark class on the <html> element to trigger dark: variants.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --color-indigo-600: #4f46e5;
+  --color-indigo-700: #4338ca;
+  --color-violet-600: #7c3aed;
+  --color-violet-700: #6d28d9;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Light mode base */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900;
+  }
+
+  /* Dark mode base overrides */
+  .dark body {
+    @apply bg-slate-950 text-slate-100 selection:bg-indigo-900 selection:text-indigo-100;
+  }
+}
+
+@layer utilities {
+  .animate-gradient {
+    background-size: 300% 300%;
+    animation: gradient-flow 8s ease infinite;
+  }
+
+  .animate-shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  }
+
+  @keyframes gradient-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+  }
+}
+
+/* Custom Scrollbar for a premium feel */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-100 dark:bg-slate-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 dark:bg-slate-700 rounded-full border-4 border-slate-100 dark:border-slate-900 hover:bg-indigo-400 transition-colors;
+}
