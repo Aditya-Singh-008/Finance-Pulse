@@ -4,6 +4,7 @@ import Landing from './components/Landing';
 import AuthForm from './components/auth/AuthForm';
 import AppLayout from './components/layout/AppLayout';
 import MainLayout from './components/layout/MainLayout';
+import LedgerPage from './components/dashboard/LedgerPage';
 
 import { Toaster } from 'react-hot-toast';
 
@@ -28,6 +29,7 @@ const App: React.FC = () => {
                 {/* Private App Routes */}
                 <Route element={<AppLayout />}>
                     <Route path="/dashboard" element={<MainLayout />} />
+                    <Route path="/transactions" element={<LedgerPage />} />
                 </Route>
 
                 {/* Catch all redirect to landing */}

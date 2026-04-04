@@ -11,17 +11,19 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTransactions } from '../../hooks/useTransactions';
 import type { Transaction, TransactionFilters } from '../../hooks/useTransactions';
 import { 
   ArrowUpRight, 
   ArrowDownRight, 
-  Search, 
-  Clock, 
   AlertCircle,
   Loader2,
   Trash2,
-  Pencil
+  Pencil,
+  Calendar,
+  Search,
+  Clock
 } from 'lucide-react';
 import TransactionForm from './TransactionForm';
 import type { Category } from './TransactionForm';
@@ -42,8 +44,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
     userRole = null,
     categories = []
 }) => {
-    // Local search term for the input — drives the UI immediately
     const [searchTerm, setSearchTerm] = useState('');
+    const [dateFilterMode, setDateFilterMode] = useState<string>('all');
 
     const [filters, setFilters] = useState<TransactionFilters>({
         type: 'all',
@@ -63,6 +65,45 @@ const TransactionList: React.FC<TransactionListProps> = ({
         }, 400);
         return () => clearTimeout(timer);
     }, [searchTerm]);
+
+    const handleDateModeChange = (mode: string) => {
+        setDateFilterMode(mode);
+        const today = new Date();
+        
+        // Correct timezone offset for date generation (avoiding UTC bugs)
+        const toLocalISODate = (d: Date) => {
+            return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        };
+
+        if (mode === 'all') {
+            setFilters(f => ({ ...f, startDate: '', endDate: '' }));
+        } else if (mode === '7days') {
+            const lastWeek = new Date();
+            lastWeek.setDate(lastWeek.getDate() - 7);
+            setFilters(f => ({ 
+                ...f, 
+                startDate: toLocalISODate(lastWeek), 
+                endDate: toLocalISODate(today) 
+            }));
+        } else if (mode === 'thisMonth') {
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            setFilters(f => ({ 
+                ...f, 
+                startDate: toLocalISODate(firstDay), 
+                endDate: toLocalISODate(today) 
+            }));
+        } else if (mode === 'lastMonth') {
+            const firstDay = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth(), 0);
+            setFilters(f => ({ 
+                ...f, 
+                startDate: toLocalISODate(firstDay), 
+                endDate: toLocalISODate(lastDay) 
+            }));
+        } else if (mode === 'custom') {
+            setFilters(f => ({ ...f, startDate: '', endDate: '' }));
+        }
+    };
 
     const isFilterActive = filters.type !== 'all' || filters.category_id !== 'all' || filters.startDate || filters.endDate || filters.search;
     const fetchLimit = isFilterActive ? 20 : 5;
@@ -194,19 +235,55 @@ const TransactionList: React.FC<TransactionListProps> = ({
                 </select>
 
                 {/* Date Filter Toggle / Summary */}
-                <div className="flex gap-2">
-                    <input 
-                        type="date" 
-                        value={filters.startDate}
-                        onChange={(e) => setFilters(f => ({ ...f, startDate: e.target.value }))}
-                        className="w-1/2 px-3 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 dark:text-slate-300 font-bold"
-                    />
-                    <input 
-                        type="date" 
-                        value={filters.endDate}
-                        onChange={(e) => setFilters(f => ({ ...f, endDate: e.target.value }))}
-                        className="w-1/2 px-3 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 dark:text-slate-300 font-bold"
-                    />
+                <div className="flex flex-col gap-2 relative">
+                    <select 
+                        value={dateFilterMode}
+                        onChange={(e) => handleDateModeChange(e.target.value)}
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-bold"
+                    >
+                        <option value="all">Any Date</option>
+                        <option value="7days">Last 7 Days</option>
+                        <option value="thisMonth">This Month</option>
+                        <option value="lastMonth">Last Month</option>
+                        <option value="custom">Custom Calendar...</option>
+                    </select>
+
+                    {dateFilterMode === 'custom' && (
+                        <div className="flex gap-2 absolute top-full left-0 w-full mt-2 bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 z-20 animate-in fade-in slide-in-from-top-2">
+                            <div className="relative w-1/2">
+                                <input 
+                                    type="text" 
+                                    placeholder="YYYY-MM-DD"
+                                    value={filters.startDate}
+                                    onChange={(e) => setFilters(f => ({ ...f, startDate: e.target.value }))}
+                                    className="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-slate-700 dark:text-slate-300 font-bold"
+                                />
+                                <input 
+                                    type="date" 
+                                    value={filters.startDate}
+                                    onChange={(e) => setFilters(f => ({ ...f, startDate: e.target.value }))}
+                                    className="absolute right-0 top-0 w-8 h-full opacity-0 cursor-pointer z-10"
+                                />
+                                <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            </div>
+                            <div className="relative w-1/2">
+                                <input 
+                                    type="text" 
+                                    placeholder="YYYY-MM-DD"
+                                    value={filters.endDate}
+                                    onChange={(e) => setFilters(f => ({ ...f, endDate: e.target.value }))}
+                                    className="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-slate-700 dark:text-slate-300 font-bold"
+                                />
+                                <input 
+                                    type="date" 
+                                    value={filters.endDate}
+                                    onChange={(e) => setFilters(f => ({ ...f, endDate: e.target.value }))}
+                                    className="absolute right-0 top-0 w-8 h-full opacity-0 cursor-pointer z-10"
+                                />
+                                <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -321,6 +398,16 @@ const TransactionList: React.FC<TransactionListProps> = ({
                     }}
                     onCancel={() => setEditingTx(null)}
                 />
+            )}
+
+            {/* View All Button */}
+            {!isFilterActive && transactions.length > 0 && (
+                <div className="mt-8 flex justify-center border-t border-slate-100 dark:border-slate-800 pt-8">
+                    <Link to="/transactions" className="inline-flex items-center gap-2 px-8 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-2xl hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all font-medium uppercase tracking-widest text-xs border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800">
+                        View Full Ledger
+                        <ArrowUpRight className="w-4 h-4" />
+                    </Link>
+                </div>
             )}
         </div>
     );

@@ -9,7 +9,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  Users as UsersIcon, 
   ShieldAlert, 
   UserCheck, 
   UserMinus, 
@@ -110,10 +109,10 @@ const AdminUserManagement: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <UsersIcon className="w-5 h-5 text-indigo-500" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 dark:text-slate-400">Personnel Operations</span>
+            <Shield className="w-5 h-5 text-rose-500" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-500">Access Control Center</span>
           </div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Active Identity <span className="text-indigo-500">Registry</span></h2>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Identity & <span className="text-rose-500">Role Management</span></h2>
           <p className="text-slate-600 dark:text-slate-400 font-medium mt-1">Audit and update platform access levels in real-time.</p>
         </div>
 

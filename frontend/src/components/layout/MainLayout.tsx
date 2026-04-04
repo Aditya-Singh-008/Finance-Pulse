@@ -13,9 +13,10 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import DashboardOverview from '../dashboard/DashboardOverview';
 import AnalystDashboard from '../dashboard/AnalystDashboard';
-import { Wallet, BarChart2, ShieldCheck, ChevronRight } from 'lucide-react';
+import AdminUserManagement from '../dashboard/AdminUserManagement';
+import { Wallet, BarChart2, ShieldCheck, ChevronRight, Shield } from 'lucide-react';
 
-type TabType = 'personal' | 'analyst';
+type TabType = 'personal' | 'analyst' | 'iam';
 
 const MainLayout: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabType>('personal');
@@ -92,6 +93,26 @@ const MainLayout: React.FC = () => {
                             </button>
                         </>
                     )}
+
+                    {userRole === 'admin' && (
+                        <>
+                            <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
+                            <button
+                                onClick={() => setActiveTab('iam')}
+                                className={`
+                                    flex items-center gap-3 px-6 py-2.5 rounded-xl font-bold transition-all duration-300
+                                    ${activeTab === 'iam' 
+                                        ? 'bg-rose-600 text-white shadow-lg shadow-rose-500/30' 
+                                        : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
+                                    }
+                                `}
+                            >
+                                <Shield className={`w-4 h-4 ${activeTab === 'iam' ? 'scale-110' : ''}`} />
+                                <span className="hidden md:inline">Access Control Center</span>
+                                <span className="md:hidden">Access</span>
+                            </button>
+                        </>
+                    )}
                 </div>
 
                 <div className="hidden md:flex items-center gap-2 px-4 border-l border-slate-200 dark:border-slate-800">
@@ -108,11 +129,9 @@ const MainLayout: React.FC = () => {
 
             {/* Dashboard Rendering Zone */}
             <div className={`transition-all duration-500 transform ${activeTab === 'analyst' ? 'analyst-theme' : ''}`}>
-                {activeTab === 'personal' ? (
-                    <DashboardOverview />
-                ) : (
-                    <AnalystDashboard userRole={userRole} />
-                )}
+                {activeTab === 'personal' && <DashboardOverview />}
+                {activeTab === 'analyst' && <AnalystDashboard />}
+                {activeTab === 'iam' && <AdminUserManagement />}
             </div>
 
             {/* Global style injection for Analyst Theme if needed */}

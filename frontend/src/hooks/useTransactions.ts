@@ -31,10 +31,11 @@ export interface TransactionFilters {
   search?: string;
 }
 
-export const useTransactions = (limit: number = 5, selectedUserId: string | null = null, filters: TransactionFilters = {}) => {
+export const useTransactions = (limit: number = 5, selectedUserId: string | null = null, filters: TransactionFilters = {}, page: number = 1) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState<number>(0);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -56,7 +57,7 @@ export const useTransactions = (limit: number = 5, selectedUserId: string | null
           description,
           category_id,
           category:categories(name)
-        `)
+        `, { count: 'exact' })
         .eq('user_id', targetUserId);
 
       // Apply Filters
@@ -80,21 +81,27 @@ export const useTransactions = (limit: number = 5, selectedUserId: string | null
         query = query.ilike('description', `%${filters.search}%`);
       }
 
-      const { data, error: sbError } = await query
+      // Set pagination
+      const currentPage = page || 1;
+      const from = (currentPage - 1) * limit;
+      const to = from + limit - 1;
+
+      const { data, error: sbError, count } = await query
         .order('date', { ascending: false })
         .order('created_at', { ascending: false })
-        .limit(limit);
+        .range(from, to);
 
       if (sbError) throw sbError;
       
       setTransactions((data as any) || []);
+      if (count !== null) setTotalCount(count);
     } catch (err: any) {
       setError(err.message || 'Error fetching transactions');
       console.error('Transactions Hook Error:', err);
     } finally {
       setLoading(false);
     }
-  }, [limit, selectedUserId, JSON.stringify(filters)]); // Stringify filters to prevent effect loop
+  }, [limit, selectedUserId, JSON.stringify(filters), page]); // Stringify filters to prevent effect loop
 
   useEffect(() => {
     fetchTransactions();
@@ -104,6 +111,7 @@ export const useTransactions = (limit: number = 5, selectedUserId: string | null
     transactions, 
     loading, 
     error, 
+    totalCount,
     refetch: fetchTransactions 
   };
 };

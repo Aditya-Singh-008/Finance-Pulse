@@ -37,15 +37,12 @@ import {
 } from 'recharts';
 import { usePlatformAnalytics } from '../../hooks/usePlatformAnalytics';
 import ExportCsvButton from './ExportCsvButton';
-import AdminUserManagement from './AdminUserManagement';
 
-interface AnalystDashboardProps {
-  userRole?: string | null;
-}
+interface AnalystDashboardProps {}
 
 const COLORS = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#0ea5e9'];
 
-const AnalystDashboard: React.FC<AnalystDashboardProps> = ({ userRole }) => {
+const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
   const { data, loading, error, refetch } = usePlatformAnalytics();
   const [activeIndex, setActiveIndex] = React.useState(-1);
   const [mounted, setMounted] = React.useState(false);
@@ -397,9 +394,6 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = ({ userRole }) => {
           </div>
         </div>
       </div>
-
-      {/* Admin Operations Section */}
-      {userRole === 'admin' && <AdminUserManagement />}
     </div>
   );
 };
