@@ -9,7 +9,7 @@ const corsHeaders = {
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
@@ -47,15 +47,22 @@ Deno.serve(async (req: Request) => {
     // 2. Initialize God-Mode client with Service Role Key to bypass RLS
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 3. Verify user's role in the profiles table
+    // 3. Verify user's role and integrity status in the profiles table
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .select("role")
+      .select("role, status")
       .eq("id", user.id)
       .single();
 
     if (profileError || !profile || !["admin", "analyst"].includes(profile.role)) {
       return new Response(JSON.stringify({ error: "Forbidden: Administrative access required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (profile.status === "inactive") {
+      return new Response(JSON.stringify({ error: "Account is inactive. Access denied." }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

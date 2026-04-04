@@ -20,6 +20,8 @@ import {
     TrendingDown,
     Wallet,
     RefreshCcw,
+    Lock,
+    ShieldAlert,
     AlertCircle,
     PieChart,
     ChevronRight,
@@ -118,6 +120,31 @@ const DashboardOverview: React.FC = () => {
 
     /** ──────── PHASE 3: ERROR BOUNDARY ──────── */
     if (error) {
+        const isInactive = error.toLowerCase().includes('inactive');
+        
+        if (isInactive) {
+            return (
+                <div className="flex flex-col items-center justify-center py-12 text-center animate-in zoom-in duration-500 max-w-md mx-auto">
+                    <div className="bg-amber-100/50 dark:bg-amber-900/20 p-6 rounded-3xl mb-6 border-2 border-amber-500/20 relative shadow-lg shadow-amber-500/5">
+                        <Lock className="w-12 h-12 text-amber-600 dark:text-amber-500" />
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-600 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900">
+                           <AlertCircle className="w-2.5 h-2.5 text-white" />
+                        </div>
+                    </div>
+                    <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">
+                        Account <span className="text-amber-600 uppercase">Restricted</span>
+                    </h3>
+                    <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm text-base leading-relaxed font-medium px-4">
+                        Status: <span className="text-amber-600 font-bold uppercase tracking-widest text-sm">Inactive</span>. Your credentials have been flagged and access to financial data is currently suspended.
+                    </p>
+                    <div className="px-6 py-3 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 w-full flex items-center justify-center gap-3">
+                        <ShieldAlert className="w-4 h-4 text-amber-600" />
+                        <span className="text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest text-[10px]">Integrity Protocol Violation</span>
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <div className="flex flex-col items-center justify-center py-32 text-center animate-in fade-in duration-500">
                 <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-[2rem] mb-8">
@@ -154,7 +181,7 @@ const DashboardOverview: React.FC = () => {
                         <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
                             Hello, <span className="text-indigo-600 dark:text-indigo-400">{data?.user_name || 'there'}</span>!
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium">Let's start your financial journey today.</p>
+                        <p className="text-slate-600 dark:text-slate-400 font-medium">Let's start your financial journey today.</p>
                     </div>
                     <div className="flex items-center gap-3">
                         {userRole === 'admin' && <AdminUserSwitcher onUserSelected={setSelectedUserId} />}
@@ -180,7 +207,7 @@ const DashboardOverview: React.FC = () => {
                             Welcome to Finance Pulse
                         </h2>
 
-                        <p className="text-xl text-slate-500 dark:text-slate-400 mb-12 font-medium leading-relaxed italic">
+                        <p className="text-xl text-slate-600 dark:text-slate-400 mb-12 font-medium leading-relaxed italic">
                             "Your dashboard is like a garden. Plant your first transaction to see your financial insights grow."
                         </p>
 
@@ -210,7 +237,7 @@ const DashboardOverview: React.FC = () => {
                     <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
                         Hello, <span className="text-indigo-600 dark:text-indigo-400">{data?.user_name || 'there'}</span>!
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium">Here's what's happening with your finances today.</p>
+                    <p className="text-slate-600 dark:text-slate-400 font-medium">Here's what's happening with your finances today.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     {userRole === 'admin' && (
@@ -226,10 +253,11 @@ const DashboardOverview: React.FC = () => {
                     />
                     <button
                         onClick={handleRefresh}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-sm active:scale-95"
+                        disabled={loading}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-slate-950 border border-slate-800 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:opacity-50"
                     >
                         <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                        Refresh
+                        <span className="text-xs uppercase tracking-widest text-indigo-100 italic">Protocol Refresh</span>
                     </button>
                 </div>
             </div>
@@ -237,7 +265,7 @@ const DashboardOverview: React.FC = () => {
             {/* Summary Cards Top Row */}
             <div className="grid md:grid-cols-3 gap-8">
                 {/* Total Income */}
-                <div className="group bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-indigo-900/40 hover:-translate-y-1 overflow-hidden relative">
+                <div className="group bg-slate-50 dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-indigo-900/40 hover:-translate-y-1 overflow-hidden relative">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 dark:bg-emerald-900/20 rounded-bl-full -z-10 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 transition-all"></div>
                     <div className="flex items-center justify-between mb-8">
                         <div className="p-4 bg-emerald-600/10 dark:bg-emerald-500/20 rounded-3xl group-hover:scale-110 transition-transform duration-500">
@@ -248,14 +276,14 @@ const DashboardOverview: React.FC = () => {
                             <span>Stable</span>
                         </div>
                     </div>
-                    <h3 className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs mb-2">Total Income</h3>
+                    <h3 className="text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest text-xs mb-2">Total Income</h3>
                     <p className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                         {formatCurrency(data?.total_income || 0)}
                     </p>
                 </div>
 
                 {/* Total Expenses */}
-                <div className="group bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-red-900/10 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-red-900/40 hover:-translate-y-1 overflow-hidden relative">
+                <div className="group bg-slate-50 dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-red-900/10 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-red-900/40 hover:-translate-y-1 overflow-hidden relative">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 dark:bg-red-900/20 rounded-bl-full -z-10 group-hover:bg-red-100 dark:group-hover:bg-red-900/30 transition-all"></div>
                     <div className="flex items-center justify-between mb-8">
                         <div className="p-4 bg-red-600/10 dark:bg-red-500/20 rounded-3xl group-hover:scale-110 transition-transform duration-500">
@@ -266,7 +294,7 @@ const DashboardOverview: React.FC = () => {
                             <span>Attention</span>
                         </div>
                     </div>
-                    <h3 className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs mb-2">Total Expenses</h3>
+                    <h3 className="text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest text-xs mb-2">Total Expenses</h3>
                     <p className="text-4xl font-bold text-red-600 dark:text-red-500 tracking-tight">
                         {formatCurrency(data?.total_expenses || 0)}
                     </p>
@@ -298,7 +326,7 @@ const DashboardOverview: React.FC = () => {
             </div>
 
             {/* Bottom Section: Category Breakdown */}
-            <div className="w-full bg-white dark:bg-slate-900 p-12 rounded-[3.5rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-indigo-900/10 transition-all duration-500 hover:shadow-lg dark:hover:shadow-indigo-900/20">
+            <div className="w-full bg-slate-50 dark:bg-slate-900 p-12 rounded-[3.5rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-indigo-900/10 transition-all duration-500 hover:shadow-lg dark:hover:shadow-indigo-900/20">
                 <div className="flex items-center justify-between mb-10">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl">

@@ -17,6 +17,7 @@ import {
   FileText,
   Loader2,
   AlertCircle,
+  Lock,
   CheckCircle2,
   TrendingUp,
   TrendingDown,
@@ -215,19 +216,31 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
 
     try {
       if (isEditMode) {
-        // Direct update via Supabase Client
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update({
-            amount: parsedAmount,
-            type: form.type,
-            category_id: form.category_id,
-            date: form.date,
-            description: form.description || null,
-          })
-          .eq('id', transactionToEdit.id);
+        // Use the new Edge Function for updates to ensure consistent validation
+        const { data: responseBody, error: invokeError } = await supabase.functions.invoke(
+          'update-transaction',
+          {
+            method: 'PATCH',
+            body: {
+              id: transactionToEdit.id,
+              amount: parsedAmount,
+              type: form.type,
+              category_id: form.category_id,
+              date: form.date,
+              description: form.description || null,
+            },
+          }
+        );
 
-        if (updateError) throw updateError;
+        if (invokeError) {
+          const serverMessage =
+            responseBody?.error ?? invokeError.message ?? 'Failed to update transaction.';
+          throw new Error(serverMessage);
+        }
+
+        if (responseBody?.error) {
+          throw new Error(responseBody.error);
+        }
       } else {
         // Create via Edge Function
         const { data: responseBody, error: invokeError } = await supabase.functions.invoke(
@@ -566,12 +579,17 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
                   role="alert"
                   aria-live="assertive"
                   className={[
-                    'flex items-start gap-3 p-4 rounded-2xl',
-                    'bg-red-50 border border-red-200 text-red-700',
-                    'animate-shake',
+                    'flex items-start gap-3 p-4 rounded-2xl animate-shake',
+                    submitError.toLowerCase().includes('inactive')
+                      ? 'bg-amber-50 border border-amber-200 text-amber-800'
+                      : 'bg-red-50 border border-red-200 text-red-700',
                   ].join(' ')}
                 >
-                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  {submitError.toLowerCase().includes('inactive') ? (
+                    <Lock className="w-5 h-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  )}
                   <p className="text-sm font-semibold leading-snug">{submitError}</p>
                 </div>
               )}

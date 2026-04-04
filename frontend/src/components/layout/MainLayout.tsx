@@ -111,7 +111,7 @@ const MainLayout: React.FC = () => {
                 {activeTab === 'personal' ? (
                     <DashboardOverview />
                 ) : (
-                    <AnalystDashboard />
+                    <AnalystDashboard userRole={userRole} />
                 )}
             </div>
 

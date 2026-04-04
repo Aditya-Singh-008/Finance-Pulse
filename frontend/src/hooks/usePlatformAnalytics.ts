@@ -16,6 +16,7 @@ export interface PlatformAnalytics {
   platform_total_expenses: number;
   total_transaction_count: number;
   category_breakdown: { name: string; value: number }[];
+  daily_trends: { date: string; income: number; expense: number }[];
 }
 
 export function usePlatformAnalytics() {
@@ -28,9 +29,23 @@ export function usePlatformAnalytics() {
       setLoading(true);
       setError(null);
 
-      const { data: responseBody, error } = await supabase.functions.invoke('get-platform-analytics');
+      const { data: responseBody, error: invokeError } = await supabase.functions.invoke('get-platform-analytics');
 
-      if (error) throw error;
+      if (invokeError) {
+        // Supabase FunctionsHttpError wraps the actual response body in context.json()
+        let message = invokeError.message;
+        
+        if ((invokeError as any).context && typeof (invokeError as any).context.json === 'function') {
+          try {
+            const errorData = await (invokeError as any).context.json();
+            message = errorData?.error || message;
+          } catch (e) {
+            // Fallback to existing if parsing fails
+          }
+        }
+        
+        throw new Error(message || 'Error recalibrating platform data');
+      }
 
       console.log('DEBUG: Platform Analytics Response Body (Raw):', responseBody);
 

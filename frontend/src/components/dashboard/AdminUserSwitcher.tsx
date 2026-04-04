@@ -83,17 +83,17 @@ const AdminUserSwitcher: React.FC<AdminUserSwitcherProps> = ({ onUserSelected })
             {/* User Select input wrapper */}
             {loading ? (
                 <div className="pl-12 pr-6 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center gap-2">
-                    <Loader2 className="w-3 h-3 text-slate-400 dark:text-slate-500 animate-spin" />
-                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Loading Users...</span>
+                    <Loader2 className="w-3 h-3 text-slate-600 dark:text-slate-500 animate-spin" />
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-500 uppercase tracking-widest">Loading Users...</span>
                 </div>
             ) : (
                 <div className="flex items-center bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden focus-within:ring-4 focus-within:ring-indigo-100 dark:focus-within:ring-indigo-900/20 focus-within:border-indigo-500 dark:focus-within:border-indigo-400 transition-all shadow-sm dark:shadow-black/20">
                    <select 
                         value={selectedId}
                         onChange={handleChange}
-                        className="pl-12 pr-10 py-3 bg-transparent text-sm font-bold text-slate-700 dark:text-slate-300 outline-none appearance-none cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors"
+                        className="pl-12 pr-10 py-3 bg-transparent text-sm font-bold text-slate-900 dark:text-slate-100 outline-none appearance-none cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors"
                    >
-                        <option value="" className="dark:bg-slate-900">My Personal Dashboard (Default)</option>
+                        <option value="" className="dark:bg-slate-900">Personal Protocol (Default)</option>
                         {users.map((profile) => (
                             <option key={profile.id} value={profile.id} className="dark:bg-slate-900">
                                 {profile.full_name || 'Unnamed User'} {profile.email ? `(${profile.email})` : ''}

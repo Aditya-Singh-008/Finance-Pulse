@@ -100,14 +100,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
 
     // ──────────────────────────────────────────────────────────────────
-    // 2.5 Fetch the user's display name from the profiles table.
-    //     This is more reliable than metadata for long-lived sessions.
+    // 2.5 Fetch the caller's integrity status and display name.
     // ──────────────────────────────────────────────────────────────────
     const { data: profileRow } = await supabase
       .from("profiles")
-      .select("full_name")
-      .eq("id", effectiveUserId)
+      .select("full_name, status")
+      .eq("id", user.id)
       .maybeSingle();
+
+    if (profileRow?.status === "inactive") {
+      return errorResponse(403, "Account is inactive. Please contact system administrator.", CORS_HEADERS);
+    }
 
     const displayName = profileRow?.full_name ?? user?.user_metadata?.full_name ?? "User";
 

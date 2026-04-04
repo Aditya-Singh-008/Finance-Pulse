@@ -56,11 +56,6 @@ Before you begin, ensure you have the following installed:
 * [Git](https://git-scm.com/)
 * [Supabase CLI](https://supabase.com/docs/guides/cli) (for running edge functions locally)
 
-### Step 1: Clone the Repository
-Download the code to your local machine:
-```bash
-git clone [https://github.com/Aditya-Singh-008/Finance-Pulse.git](https://github.com/Aditya-Singh-008/Finance-Pulse.git)
-cd Finance-Pulse
 
 ## 🏗 Architecture
 
@@ -169,23 +164,60 @@ Set a user's role by updating their row in the `profiles` table in your Supabase
 
 ### `POST /functions/v1/create-transaction`
 Creates a new transaction for the authenticated user.
+- **Validation**: Enforces numeric precision (2 dec), date limits (no future), and type-category consistency.
 
-**Body:**
-```json
-{
-  "amount": 1500.00,
-  "type": "expense",
-  "category_id": "<uuid>",
-  "date": "2026-04-03",
-  "description": "Optional note"
-}
-```
+### `PATCH /functions/v1/update-transaction`
+Updates an existing transaction.
+- **Note**: This fulfills the "updating records" requirement via a secure validation layer.
+- **Body**: `{ "id": "<uuid>", "amount": 1000, ... }`
 
-### `GET /functions/v1/get-dashboard-summary`
-Returns aggregated personal finance data for the authenticated user.
+### `GET /functions/v1/manage-users`
+List all platform users.
+- **Permission**: `admin` only.
+- **Internal**: Uses service_role to query the profiles table.
+
+### `PATCH /functions/v1/manage-users/:id`
+Update user role or account status (active/inactive).
+- **Permission**: `admin` only.
 
 ### `GET /functions/v1/get-platform-analytics`
-Returns platform-wide analytics. Requires `analyst` or `admin` role.
+Returns macro-level platform analytics including **Daily Trends** (Last 30 Days).
+- **Trends**: Array of `{ date: string, income: number, expense: number }` for time-series visualization.
 
-### `POST /functions/v1/export-platform-csv`
-Returns a `.csv` file of all platform transactions. Requires `analyst` or `admin` role.
+---
+
+## 💡 Assumptions & Design Decisions
+
+### Architectural Assumptions
+1. **RBAC via Profiles**: We assume authentication alone isn't enough; authorization roles (`admin`, `analyst`, `viewer`) are stored in a dedicated `profiles` table linked to `auth.users` via a trigger.
+2. **Category Isolation**: Categories are immutable across users to ensure data integrity during platform-wide aggregation.
+3. **UTC Precision**: All transaction dates are stored and compared in YYYY-MM-DD format to avoid timezone drift in financial reports.
+
+### Tradeoffs Considered
+- **Edge Functions vs. Direct Client Updates**: We chose to route `CREATE` and `UPDATE` operations through Edge Functions despite the extra latency. **Tradeoff**: Higher latency for improved data consistency. This ensures that business logic (like verifying a category's type matches the transaction's type) is never bypassed by a malicious client.
+- **Recharts vs. D3.js**: We used Recharts for the Analyst Dashboard. **Tradeoff**: Less control over minute SVG details in exchange for faster implementation of high-fidelity, responsive, and accessible charts that integrate perfectly with React 19's rendering cycle.
+- **Client-side vs Server-side CSV Generation**: We generate CSVs in a dedicated Deno Edge Function. **Tradeoff**: Increased server cost vs. client-side performance. Large datasets can crash browser memory; generating on the edge ensures stability and better security (no raw transaction JSON ever touches the browser before it's converted to a file).
+
+### Why Supabase?
+We selected **Supabase** over alternatives like Firebase or a custom Express/Postgres stack for three core reasons:
+1. **RLS (Row-Level Security)**: It allows us to build a multi-tenant financial app where data isolation is non-negotiable, enforced directly at the Postgres kernel level.
+2. **Deno Edge Runtime**: Supabase Functions use Deno, providing a modern, secure, and zero-config deployment for our validation logic.
+3. **Auto-Generated Types**: Using the Supabase CLI, we can sync database schemas to TypeScript interfaces, providing end-to-end type safety.
+
+---
+
+## 🛣️ Future Architectural Roadmap
+
+While the current platform handles multi-tenant RBAC securely, enterprise scaling introduces concurrency challenges. The next planned architectural upgrade involves:
+
+* **Optimistic Concurrency Control (OCC):** To prevent "Lost Update" anomalies when multiple Admins mutate the same user or transaction record simultaneously via the `PATCH` endpoints, the database tables will implement a `version` integer schema. Edge Functions will enforce an `.eq('version', currentVersion)` lock during updates, instantly rejecting race-condition mutations and prompting the Admin to refresh their localized state.
+
+---
+
+## 🧪 Testing (Engineering Maturity)
+
+Core validation logic is covered by Deno tests located in the `supabase/functions/*/` directories. 
+To run tests locally:
+```bash
+deno test supabase/functions/update-transaction/validation_test.ts
+```

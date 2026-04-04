@@ -25,17 +25,33 @@ export const useDashboard = () => {
         setLoading(true);
         setError(null);
         try {
-            // If an ID is selected, we append as a query param. 
-            // The Edge Function then checks if the caller is an admin before allowing the fetch.
             const functionName = selectedUserId 
                 ? `get-dashboard-summary?user_id=${selectedUserId}` 
                 : 'get-dashboard-summary';
 
             const { data: responseBody, error: invokeError } = await supabase.functions.invoke(functionName);
             
-            if (invokeError) throw invokeError;
+            if (invokeError) {
+              // Supabase FunctionsHttpError wraps the actual response body in context.json()
+              // We attempt to extract a clear message for the UI lockout check
+              let message = invokeError.message;
+              
+              if ((invokeError as any).context && typeof (invokeError as any).context.json === 'function') {
+                try {
+                  const errorData = await (invokeError as any).context.json();
+                  message = errorData?.error || message;
+                } catch (e) {
+                  // Fallback to existing message if JSON parsing fails
+                }
+              }
+              
+              throw new Error(message || 'Error recalibrating dashboard data');
+            }
             
-            // Success: unwrap global metadata from response
+            if (responseBody?.error) {
+                throw new Error(responseBody.error);
+            }
+
             setData(responseBody.data as DashboardData);
         } catch (err: any) {
             setError(err.message || 'Error fetching dashboard data');

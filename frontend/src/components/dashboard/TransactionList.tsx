@@ -138,7 +138,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
     }
 
     return (
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-indigo-900/10 transition-all duration-500 hover:shadow-lg dark:hover:shadow-indigo-900/20 overflow-hidden">
+        <div className="bg-slate-50 dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-indigo-900/10 transition-all duration-500 hover:shadow-lg dark:hover:shadow-indigo-900/20 overflow-hidden">
             <div className="flex items-center justify-between mb-8 px-2">
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl">
@@ -146,7 +146,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                     </div>
                 <div>
                     <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Financial Activity</h2>
-                    <p className="text-sm text-slate-400 dark:text-slate-500 font-medium uppercase tracking-widest">
+                    <p className="text-sm text-slate-600 dark:text-slate-500 font-medium uppercase tracking-widest">
                         {isFilterActive ? `Showing up to ${fetchLimit} matches` : 'Your last 5 transactions'}
                     </p>
                 </div>
@@ -219,7 +219,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                 <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
                     <table className="w-full text-left border-separate border-spacing-y-3">
                         <thead>
-                            <tr className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                            <tr className="text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">
                                 <th className="px-4 pb-2">Description</th>
                                 <th className="px-4 pb-2">Category</th>
                                 <th className="px-4 pb-2">Date</th>
@@ -229,8 +229,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
                         </thead>
                         <tbody>
                             {transactions.map((tx: Transaction) => (
-                                <tr key={tx.id} className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all">
-                                    <td className="px-4 py-5 bg-white dark:bg-slate-900 border-y border-l border-slate-100 dark:border-slate-800 rounded-l-2xl group-hover:border-slate-200 dark:group-hover:border-slate-700">
+                                <tr key={tx.id} className="group hover:bg-slate-100/50 dark:hover:bg-slate-800/40 transition-all">
+                                    <td className="px-4 py-5 bg-slate-50/50 dark:bg-slate-900 border-y border-l border-slate-100 dark:border-slate-800 rounded-l-2xl group-hover:border-slate-200 dark:group-hover:border-slate-700">
                                         <div className="flex items-center gap-4">
                                             <div className={[
                                                 "p-2.5 rounded-xl transition-all group-hover:scale-110 duration-300",
@@ -242,23 +242,23 @@ const TransactionList: React.FC<TransactionListProps> = ({
                                                 <div className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                                     {tx.description || (tx.type === 'income' ? 'Received Funds' : 'Shared Payment')}
                                                 </div>
-                                                <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 dark:text-slate-500 mt-0.5">
+                                                <div className="text-[10px] uppercase tracking-widest font-bold text-slate-600 dark:text-slate-500 mt-0.5">
                                                     {tx.type}
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-4 py-5 bg-white dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800 group-hover:border-slate-200 dark:group-hover:border-slate-700">
+                                    <td className="px-4 py-5 bg-slate-50/50 dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800 group-hover:border-slate-200 dark:group-hover:border-slate-700">
                                         <span className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 font-bold text-[11px] rounded-lg uppercase tracking-wider group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/40 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-all border border-slate-100 dark:border-slate-800">
                                             {(tx.category as any)?.name || 'General'}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-5 bg-white dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800 group-hover:border-slate-200 dark:group-hover:border-slate-700">
+                                    <td className="px-4 py-5 bg-slate-50/50 dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800 group-hover:border-slate-200 dark:group-hover:border-slate-700">
                                         <div className="font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
                                             {formatDate(tx.date)}
                                         </div>
                                     </td>
-                                    <td className="px-4 py-5 bg-white dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800 group-hover:border-slate-200 dark:group-hover:border-slate-700 text-right">
+                                    <td className="px-4 py-5 bg-slate-50/50 dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800 group-hover:border-slate-200 dark:group-hover:border-slate-700 text-right">
                                         <div className={[
                                             "text-lg font-bold tracking-tight",
                                             tx.type === 'income' ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-500"
@@ -266,7 +266,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                                             {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
                                         </div>
                                     </td>
-                                    <td className="px-4 py-5 bg-white dark:bg-slate-900 border-y border-r border-slate-100 dark:border-slate-800 rounded-r-2xl group-hover:border-slate-200 dark:group-hover:border-slate-700 text-right">
+                                    <td className="px-4 py-5 bg-slate-50/50 dark:bg-slate-900 border-y border-r border-slate-100 dark:border-slate-800 rounded-r-2xl group-hover:border-slate-200 dark:group-hover:border-slate-700 text-right">
                                         <div className="flex items-center justify-end gap-1">
                                             {isDeleting === tx.id ? (
                                                 <Loader2 className="w-4 h-4 animate-spin text-red-500" />
