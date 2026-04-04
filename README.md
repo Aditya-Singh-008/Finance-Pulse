@@ -23,6 +23,7 @@ A high-fidelity, role-based financial management platform built with React, Vite
 
 ### For Analysts & Admins
 - **Institutional Analytics Dashboard** with platform-wide aggregates (total users, volume, income vs. expenses)
+- **User & Role Management**: Admins can promote/demote users (Viewer, Analyst, Admin) and toggle account access status (Active/Inactive) directly from the dashboard.
 - **Interactive Donut Chart** with hover-based segment focus for category breakdown
 - **Platform Health Bar** showing the live income/expense balance ratio
 - **CSV Export**: Download a full audit trail of all platform transactions in one click
