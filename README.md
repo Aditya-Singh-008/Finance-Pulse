@@ -1,4 +1,4 @@
-# 📈 ![Finance Pulse](https://finance-pulse-one.vercel.app/)
+# 📈 Finance Pulse: https://finance-pulse-one.vercel.app/
 
 ![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Vite](https://img.shields.io/badge/Vite_5-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
