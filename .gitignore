@@ -29,6 +29,14 @@ frontend/.env
 supabase/.temp/
 supabase/functions/.env
 
+# Performance Testing (contains credentials & large JSON results)
+performance-tests/test-users.json
+performance-tests/results/
+performance-tests/node_modules/
+performance-tests/get-tokens.js
+performance-tests/k6/config.js
+performance-tests/*.json
+
 # Logs / Temp
 logs
 *.log

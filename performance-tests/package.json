@@ -1,0 +1,23 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.0"
+  },
+  "scripts": {
+    "get-tokens": "node get-tokens.js",
+    "seed:10k":   "node seed-transactions.js --count 10000",
+    "seed:30k":   "node seed-transactions.js --count 30000",
+    "seed:50k":   "node seed-transactions.js --count 50000",
+    "seed:clear": "node seed-transactions.js --clear",
+    "test:load":  "k6 run --out json=results/main-load-test.json k6/main-load-test.js",
+    "test:cold":  "k6 run --out json=results/cold-start.json k6/cold-start-test.js",
+    "test:scale:small":  "k6 run --env DATA_SIZE=small  --out json=results/scaling-small.json  k6/scaling-test.js",
+    "test:scale:medium": "k6 run --env DATA_SIZE=medium --out json=results/scaling-medium.json k6/scaling-test.js",
+    "test:scale:large":  "k6 run --env DATA_SIZE=large  --out json=results/scaling-large.json  k6/scaling-test.js",
+    "interpret": "node interpret-results.js",
+    "interpret:cold":   "node interpret-results.js results/cold-start.json",
+    "interpret:small":  "node interpret-results.js results/scaling-small.json",
+    "interpret:medium": "node interpret-results.js results/scaling-medium.json",
+    "interpret:large":  "node interpret-results.js results/scaling-large.json"
+  }
+}

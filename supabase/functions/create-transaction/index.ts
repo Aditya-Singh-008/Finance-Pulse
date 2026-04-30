@@ -239,6 +239,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return errorResponse(500, `Failed to create transaction: ${insertError.message}`);
     }
 
+    // ── STEP 7: Invalidate Global Cache ──
+    // REMOVED: Deleting the global analytics_cache on every single transaction 
+    // causes a "Cache Invalidation Storm" under heavy load (200 VUs).
+    // In production, analytics should be updated via a pg_cron job every 5 minutes 
+    // rather than synchronously on every single user write.
+
     console.info(`[create-transaction] OK — effective_user=${effectiveUserId} caller=${user.id}`);
     return successResponse(inserted as CreatedTransaction);
 
