@@ -1,71 +1,145 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400..600&display=swap");
 @import "tailwindcss";
 
-/* 
- * Enable class-based dark mode for Tailwind v4. 
- * This allows us to use the .dark class on the <html> element to trigger dark: variants.
- */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --color-indigo-600: #4f46e5;
-  --color-indigo-700: #4338ca;
-  --color-violet-600: #7c3aed;
-  --color-violet-700: #6d28d9;
+  --font-sans: "Geist", system-ui, -apple-system, sans-serif;
+  --font-display: "Newsreader", Georgia, serif;
+
+  --color-paper: #f5f2ea;
+  --color-ink: #252a24;
+  --color-forest: #3e5140;
+  --color-moss: #78866a;
+  --color-clay: #b87555;
+  --color-rule: #e3dfd4;
+
+  --color-slate-50: #fbfaf7;
+  --color-slate-100: #f2f0e9;
+  --color-slate-200: #e6e3d9;
+  --color-slate-300: #d3d0c5;
+  --color-slate-400: #989a90;
+  --color-slate-500: #73776d;
+  --color-slate-600: #5c6258;
+  --color-slate-700: #464d43;
+  --color-slate-800: #333b32;
+  --color-slate-900: #232923;
+  --color-slate-950: #171b17;
+
+  --color-indigo-50: #eef1e9;
+  --color-indigo-100: #e2e8db;
+  --color-indigo-200: #cbd7be;
+  --color-indigo-300: #afc096;
+  --color-indigo-400: #93a77a;
+  --color-indigo-500: #788d63;
+  --color-indigo-600: #596f4e;
+  --color-indigo-700: #465a3d;
+  --color-indigo-800: #35472f;
+  --color-indigo-900: #263425;
+  --color-indigo-950: #182117;
+
+  --color-violet-50: #f4efea;
+  --color-violet-100: #ebe1d8;
+  --color-violet-200: #dcc9b9;
+  --color-violet-300: #c9aa91;
+  --color-violet-400: #b8896c;
+  --color-violet-500: #a87859;
+  --color-violet-600: #916347;
+  --color-violet-700: #774f3a;
+  --color-violet-800: #604231;
+  --color-violet-900: #493326;
+  --color-violet-950: #2d211a;
+
+  --color-purple-500: #aa8267;
+  --color-purple-600: #936d53;
+  --color-purple-700: #775840;
+}
+
+:root {
+  color-scheme: light;
+  --surface: #fbfaf7;
+  --muted: #73776d;
+  --chart-grid: #e6e3d9;
+}
+
+.dark {
+  color-scheme: dark;
+  --surface: #202620;
+  --muted: #a5aa9f;
+  --chart-grid: #3a4239;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-  
-  /* Light mode base */
-  body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    @apply bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900;
+    background: #f5f2ea;
   }
 
-  /* Dark mode base overrides */
+  body {
+    min-width: 320px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-paper text-ink font-sans;
+  }
+
   .dark body {
     @apply bg-slate-950 text-slate-100 selection:bg-indigo-900 selection:text-indigo-100;
   }
-}
 
-@layer utilities {
-  .animate-gradient {
-    background-size: 300% 300%;
-    animation: gradient-flow 8s ease infinite;
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .animate-shake {
-    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-  }
-
-  @keyframes gradient-flow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  @keyframes shake {
-    10%, 90% { transform: translate3d(-1px, 0, 0); }
-    20%, 80% { transform: translate3d(2px, 0, 0); }
-    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-    40%, 60% { transform: translate3d(4px, 0, 0); }
+  :focus-visible {
+    outline: 2px solid #78866a;
+    outline-offset: 3px;
   }
 }
 
-/* Custom Scrollbar for a premium feel */
+h1,
+h2,
+h3 {
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.finance-app [class*="rounded-[2.5rem]"],
+.finance-app [class*="rounded-[3rem]"],
+.finance-app [class*="rounded-[3.5rem]"],
+.finance-app [class*="rounded-[4rem]"] {
+  border-radius: 1.35rem !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-100 dark:bg-slate-900;
+  background: #f2f0e9;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 dark:bg-slate-700 rounded-full border-4 border-slate-100 dark:border-slate-900 hover:bg-indigo-400 transition-colors;
+  background: #d3d0c5;
+  border: 3px solid #f2f0e9;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #78866a;
 }

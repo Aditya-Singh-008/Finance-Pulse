@@ -40,7 +40,7 @@ import ExportCsvButton from './ExportCsvButton';
 
 interface AnalystDashboardProps {}
 
-const COLORS = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#0ea5e9'];
+const COLORS = ['#596f4e', '#b87555', '#8a9879', '#c39a72', '#61746b', '#9a7a65'];
 
 const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
   const { data, loading, error, refetch } = usePlatformAnalytics();
@@ -53,12 +53,11 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[600px] flex flex-col items-center justify-center space-y-4 animate-in fade-in duration-700">
+      <div className="min-h-[400px] flex flex-col items-center justify-center space-y-4 animate-in fade-in duration-500">
         <div className="relative">
-          <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full"></div>
-          <Loader2 className="w-12 h-12 text-indigo-500 animate-spin relative" />
+          <Loader2 className="w-8 h-8 text-forest animate-spin relative" aria-hidden="true" />
         </div>
-        <p className="text-slate-400 font-medium tracking-wide">Calibrating Analytics Protocol...</p>
+        <p className="text-slate-400 font-medium tracking-wide">Loading platform analytics…</p>
       </div>
     );
   }
@@ -69,18 +68,17 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
     if (isInactive) {
       return (
         <div className="min-h-[400px] flex items-center justify-center animate-in zoom-in duration-500 px-4">
-          <div className="bg-slate-900 border-2 border-amber-500/20 rounded-3xl p-8 max-w-md text-center relative overflow-hidden shadow-2xl">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 via-transparent to-amber-500"></div>
+          <div className="bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/40 rounded-3xl p-8 max-w-md text-center relative overflow-hidden shadow-sm">
             <div className="bg-amber-500/10 p-5 rounded-2xl w-fit mx-auto mb-6">
                <ShieldOff className="w-10 h-10 text-amber-500" />
             </div>
-            <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Clearance <span className="text-amber-500 uppercase">Suspended</span></h3>
+            <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Analyst access <span className="text-amber-500">unavailable</span></h3>
             <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed">
-              Your administrative credentials are <span className="text-amber-500 font-bold uppercase tracking-widest">Inactive</span>. Dynamic data streams and institutional archives have been locked for security.
+              Your analyst access is inactive. Contact an administrator if you think this should be changed.
             </p>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-lg border border-slate-700 text-slate-400 font-bold uppercase tracking-[0.2em] text-[8px]">
                <AlertCircle className="w-3 h-3 text-amber-500" />
-               Security Containment Active
+               Account status
             </div>
           </div>
         </div>
@@ -89,15 +87,15 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
 
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <div className="bg-red-500/10 border border-red-500/20 rounded-3xl p-8 max-w-md text-center backdrop-blur-md">
+        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-3xl p-8 max-w-md text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">Sync Error</h3>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Analytics unavailable</h3>
           <p className="text-slate-400 mb-6">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-2 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors"
+            className="px-6 py-2 bg-forest text-white font-bold rounded-xl hover:bg-slate-800 transition-colors"
           >
-            Reconnect
+            Try again
           </button>
         </div>
       </div>
@@ -120,7 +118,7 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
   const formatNumber = (val: number) =>
     new Intl.NumberFormat('en-US', { notation: 'compact' }).format(val);
 
-  // Platform Health Calculation
+  // Compare platform-wide income and expenses.
   const totalFlow = analytics.platform_total_income + analytics.platform_total_expenses;
   const incomePercent = totalFlow > 0 ? (analytics.platform_total_income / totalFlow) * 100 : 0;
   const expensePercent = totalFlow > 0 ? (analytics.platform_total_expenses / totalFlow) * 100 : 0;
@@ -171,12 +169,12 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <ShieldCheck className="w-5 h-5 text-indigo-400" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400/80">Platform Command Center</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400/80">Shared analytics</span>
           </div>
           <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            Institutional <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 dark:from-indigo-400 dark:via-violet-400 dark:to-purple-400">Analytics</span>
+            Platform <span className="text-forest dark:text-[#bbcaab]">analytics</span>
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 font-medium mt-1">Real-time aggregate data across all localized wallets</p>
+          <p className="text-slate-600 dark:text-slate-400 font-medium mt-1">An aggregate view of activity across Finance Pulse accounts</p>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <button
@@ -185,11 +183,11 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
             className="flex items-center gap-2 px-5 py-3 bg-slate-900 dark:bg-slate-950 border border-slate-800 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:opacity-50"
           >
             <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span className="text-xs uppercase tracking-widest text-indigo-100 italic">Protocol Refresh</span>
+            <span className="text-xs font-medium">Refresh overview</span>
           </button>
           <div className="flex items-center gap-3 bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/20 px-6 py-3 rounded-2xl backdrop-blur-xl shrink-0">
-            <Zap className="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-pulse" />
-            <span className="text-sm font-bold text-indigo-600 dark:text-indigo-100 whitespace-nowrap">Live Infrastructure Feed</span>
+            <Zap className="w-5 h-5 text-indigo-600 dark:text-indigo-400 " />
+            <span className="text-sm font-bold text-indigo-600 dark:text-indigo-100 whitespace-nowrap">Data overview</span>
           </div>
           <ExportCsvButton />
         </div>
@@ -198,7 +196,6 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="group relative overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm dark:shadow-none transition-all duration-500 hover:border-indigo-500/40">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/5 blur-[60px]"></div>
           <div className="bg-indigo-500/10 dark:bg-indigo-500/20 p-4 rounded-2xl w-fit mb-6 ring-1 ring-indigo-500/20 group-hover:scale-110 group-hover:rotate-6 transition-transform">
             <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
           </div>
@@ -207,7 +204,6 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
         </div>
         
         <div className="group relative overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm dark:shadow-none transition-all duration-500 hover:border-violet-500/40">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-violet-600/5 blur-[60px]"></div>
           <div className="bg-violet-500/10 dark:bg-violet-500/20 p-4 rounded-2xl w-fit mb-6 ring-1 ring-violet-500/20 group-hover:scale-110 group-hover:rotate-6 transition-transform">
             <Activity className="w-6 h-6 text-violet-600 dark:text-violet-400" />
           </div>
@@ -216,31 +212,28 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
         </div>
         
         <div className="group relative overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm dark:shadow-none transition-all duration-500 hover:border-emerald-500/40">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-600/5 blur-[60px]"></div>
           <div className="bg-emerald-500/10 dark:bg-emerald-500/20 p-4 rounded-2xl w-fit mb-6 ring-1 ring-emerald-500/20 group-hover:scale-110 group-hover:rotate-6 transition-transform">
             <BarChart className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <h4 className="text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest mb-1">Global Activity</h4>
+          <h4 className="text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest mb-1">Recorded activity</h4>
           <div className="text-3xl font-black text-slate-900 dark:text-white">{formatNumber(analytics.total_transaction_count)}</div>
         </div>
 
         <div className="group relative overflow-hidden bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 transition-all duration-500 hover:border-purple-500/40">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 blur-[60px]"></div>
           <div className="bg-purple-500/10 p-4 rounded-2xl w-fit mb-6 ring-1 ring-purple-500/20 group-hover:scale-110 group-hover:rotate-6 transition-transform">
             <Globe className="w-6 h-6 text-purple-400" />
           </div>
-          <h4 className="text-slate-400 font-bold text-xs uppercase tracking-widest mb-1">Active Regions</h4>
-          <div className="text-3xl font-black text-white">Global Cluster</div>
+          <h4 className="text-slate-400 font-bold text-xs uppercase tracking-widest mb-1">Coverage</h4>
+          <div className="text-3xl font-black text-white">All accounts</div>
         </div>
       </div>
 
       {/* Financial Trends Section */}
       <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-10 shadow-sm dark:shadow-none relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] pointer-events-none"></div>
         <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
           <div>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Institutional Trends</h3>
-            <p className="text-slate-600 dark:text-slate-400 font-medium">Income vs Expenditure velocity (Last 30 Days)</p>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Income and spending</h3>
+            <p className="text-slate-600 dark:text-slate-400 font-medium">Total income compared with total expenses over the past 30 days.</p>
           </div>
           <div className="flex gap-2">
             <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
@@ -254,44 +247,44 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
           </div>
         </div>
 
-        <div className="w-full h-[350px]">
+        <div className="w-full h-[350px]" role="img" aria-label="Daily income and expense trends for the past 30 days">
           {mounted && analytics.daily_trends && analytics.daily_trends.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={analytics.daily_trends} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
                 <XAxis 
                   dataKey="date" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }}
+                  tick={{ fill: 'var(--muted)', fontSize: 10, fontWeight: 600 }}
                   tickFormatter={(val) => new Date(val).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   minTickGap={30}
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }}
+                  tick={{ fill: 'var(--muted)', fontSize: 10, fontWeight: 600 }}
                   tickFormatter={(val) => `₹${val >= 1000 ? (val/1000).toFixed(0) + 'k' : val}`}
                 />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', padding: '12px' }}
-                  itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                  labelStyle={{ color: '#94a3b8', marginBottom: '4px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                  contentStyle={{ backgroundColor: 'var(--surface)', border: '1px solid var(--rule)', borderRadius: '14px', padding: '12px', boxShadow: '0 12px 32px rgba(25, 31, 24, 0.12)' }}
+                  itemStyle={{ color: 'var(--ink)', fontSize: '12px', fontWeight: 600 }}
+                  labelStyle={{ color: 'var(--muted)', marginBottom: '4px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="income" 
-                  stroke="#10b981" 
+                  stroke="#647b58"
                   strokeWidth={4} 
-                  dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
+                  dot={{ r: 4, fill: '#647b58', strokeWidth: 2, stroke: 'var(--paper)' }}
                   activeDot={{ r: 6, strokeWidth: 0 }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="expense" 
-                  stroke="#ef4444" 
+                  stroke="#b87555"
                   strokeWidth={4} 
-                  dot={{ r: 4, fill: '#ef4444', strokeWidth: 2, stroke: '#fff' }}
+                  dot={{ r: 4, fill: '#b87555', strokeWidth: 2, stroke: 'var(--paper)' }}
                   activeDot={{ r: 6, strokeWidth: 0 }}
                 />
               </LineChart>
@@ -299,7 +292,7 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
           ) : (
             <div className="h-full flex flex-col items-center justify-center opacity-40 border-2 border-dashed border-slate-700/30 rounded-[2rem]">
                <Activity className="w-12 h-12 mb-4 text-slate-500" />
-               <p className="text-slate-500 font-bold tracking-tight">Insufficient time-series data for trend mapping.</p>
+               <p className="text-slate-500 font-bold tracking-tight">Add more transaction history to see trends.</p>
             </div>
           )}
         </div>
@@ -309,13 +302,13 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
         <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-10 flex flex-col items-center shadow-sm dark:shadow-none">
           <div className="w-full flex items-center justify-between mb-8">
             <div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Categorical Breakdown</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Volume distribution by sector</p>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Spending by category</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Share of total expenses by category</p>
             </div>
             <PieIcon className="w-6 h-6 text-indigo-500 dark:text-indigo-400" />
           </div>
 
-          <div className="w-full h-[400px] relative">
+          <div className="w-full h-[400px] relative" role="img" aria-label="Expense totals by category">
             {mounted && (
               <ResponsiveContainer width="100%" height={400}>
                 <PieChart>
@@ -358,7 +351,7 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
                       return null;
                     }}
                   />
-                  <Legend iconType="circle" />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: 'var(--muted)', paddingTop: '12px' }} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -366,31 +359,30 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
         </div>
 
         <div className="relative overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-10 flex flex-col justify-center shadow-sm dark:shadow-none">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-transparent to-red-500"></div>
           <div className="mb-12 text-center">
              <TrendingUp className="w-10 h-10 text-indigo-500 mx-auto mb-4" />
-             <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-4">Flow Velocity</h3>
-             <p className="text-slate-600 dark:text-slate-400 font-medium max-w-sm mx-auto">Macro-level comparison of platform inductors vs liabilities.</p>
+             <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-4">Income and expenses</h3>
+             <p className="text-slate-600 dark:text-slate-400 font-medium max-w-sm mx-auto">A side-by-side view of total income and spending.</p>
           </div>
 
           <div className="flex items-center justify-between gap-4 mb-8">
             <div className="flex-1 text-center bg-emerald-50 dark:bg-emerald-950/20 p-6 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/30">
                <div className="text-emerald-600 dark:text-emerald-400 font-black text-2xl">{formatCurrency(analytics.platform_total_income)}</div>
-               <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Income Induction</div>
+               <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Total income</div>
             </div>
             <div className="flex-1 text-center bg-red-50 dark:bg-red-950/20 p-6 rounded-[2rem] border border-red-100 dark:border-red-900/30">
                <div className="text-red-600 dark:text-red-400 font-black text-2xl">{formatCurrency(analytics.platform_total_expenses)}</div>
-               <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Incurred Liability</div>
+               <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Total expenses</div>
             </div>
           </div>
 
           <div className="w-full h-8 bg-slate-100 dark:bg-slate-950 rounded-2xl overflow-hidden flex ring-8 ring-slate-100 dark:ring-slate-800/10">
-            <div style={{ width: `${incomePercent}%` }} className="h-full bg-indigo-500 transition-all duration-1000 shadow-[0_0_20px_rgba(99,102,241,0.5)]"></div>
+            <div style={{ width: `${incomePercent}%` }} className="h-full bg-forest transition-all duration-700"></div>
             <div style={{ width: `${expensePercent}%` }} className="h-full bg-slate-300 dark:bg-slate-700 transition-all duration-1000"></div>
           </div>
           <div className="flex items-center justify-between mt-4">
-             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{incomePercent.toFixed(0)}% induction</span>
-             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{expensePercent.toFixed(0)}% liability</span>
+             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{incomePercent.toFixed(0)}% income</span>
+             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{expensePercent.toFixed(0)}% expenses</span>
           </div>
         </div>
       </div>
