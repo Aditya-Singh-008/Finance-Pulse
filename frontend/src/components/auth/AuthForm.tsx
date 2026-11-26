@@ -124,7 +124,7 @@ const AuthForm: React.FC = () => {
               </div>
             </div>
 
-            <button type="submit" disabled={loading} className="group mt-2 inline-flex min-h-12 w-full items-center justify-center gap-2 bg-forest px-5 text-[13px] font-medium text-white transition-colors hover:bg-[#344637] disabled:cursor-not-allowed disabled:opacity-60">
+            <button type="submit" disabled={loading} className="motion-button group mt-2 inline-flex min-h-12 w-full items-center justify-center gap-2 bg-forest px-5 text-[13px] font-medium text-white transition-colors hover:bg-[#344637] disabled:cursor-not-allowed disabled:opacity-60">
               {loading ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : null}
               {isSignUp ? 'Create account' : 'Sign in'}
               {!loading && <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-1" />}

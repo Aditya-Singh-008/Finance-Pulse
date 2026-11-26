@@ -179,7 +179,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
     }
 
     return (
-        <div className="bg-slate-50 dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-indigo-900/10 transition-all duration-500 hover:shadow-lg dark:hover:shadow-indigo-900/20 overflow-hidden">
+        <div className="motion-card bg-slate-50 dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-indigo-900/10 transition-all duration-500 hover:shadow-lg dark:hover:shadow-indigo-900/20 overflow-hidden">
             <div className="flex items-center justify-between mb-8 px-2">
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl">
@@ -310,7 +310,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                         </thead>
                         <tbody>
                             {transactions.map((tx: Transaction) => (
-                                <tr key={tx.id} className="group hover:bg-slate-100/50 dark:hover:bg-slate-800/40 transition-all">
+                                <tr key={tx.id} className="motion-row group hover:bg-slate-100/50 dark:hover:bg-slate-800/40 transition-all">
                                     <td className="px-4 py-5 bg-slate-50/50 dark:bg-slate-900 border-y border-l border-slate-100 dark:border-slate-800 rounded-l-2xl group-hover:border-slate-200 dark:group-hover:border-slate-700">
                                         <div className="flex items-center gap-4">
                                             <div className={[

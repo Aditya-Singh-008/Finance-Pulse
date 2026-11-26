@@ -249,7 +249,7 @@ const DashboardOverview: React.FC = () => {
                     <button
                         onClick={handleRefresh}
                         disabled={loading}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-slate-950 border border-slate-800 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:opacity-50"
+                        className="motion-button inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-slate-950 border border-slate-800 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:opacity-50"
                     >
                         <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         <span className="text-xs font-medium">Refresh overview</span>
@@ -258,9 +258,9 @@ const DashboardOverview: React.FC = () => {
             </div>
 
             {/* Summary Cards Top Row */}
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="motion-stagger grid md:grid-cols-3 gap-8">
                 {/* Total Income */}
-                <div className="group bg-slate-50 dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-indigo-900/40 hover:-translate-y-1 overflow-hidden relative">
+                <div className="motion-card group bg-slate-50 dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-indigo-900/40 hover:-translate-y-1 overflow-hidden relative">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 dark:bg-emerald-900/20 rounded-bl-full -z-10 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 transition-all"></div>
                     <div className="flex items-center justify-between mb-8">
                         <div className="p-4 bg-emerald-600/10 dark:bg-emerald-500/20 rounded-3xl group-hover:scale-110 transition-transform duration-500">
@@ -278,7 +278,7 @@ const DashboardOverview: React.FC = () => {
                 </div>
 
                 {/* Total Expenses */}
-                <div className="group bg-slate-50 dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-red-900/10 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-red-900/40 hover:-translate-y-1 overflow-hidden relative">
+                <div className="motion-card group bg-slate-50 dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-red-900/10 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-red-900/40 hover:-translate-y-1 overflow-hidden relative">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 dark:bg-red-900/20 rounded-bl-full -z-10 group-hover:bg-red-100 dark:group-hover:bg-red-900/30 transition-all"></div>
                     <div className="flex items-center justify-between mb-8">
                         <div className="p-4 bg-red-600/10 dark:bg-red-500/20 rounded-3xl group-hover:scale-110 transition-transform duration-500">
@@ -296,7 +296,7 @@ const DashboardOverview: React.FC = () => {
                 </div>
 
                 {/* Net Balance */}
-                <div className="group bg-indigo-600 p-8 rounded-[2.5rem] shadow-2xl shadow-slate-200 dark:shadow-black/40 transition-all duration-500 hover:shadow-indigo-300 dark:hover:shadow-black/60 hover:-translate-y-1 overflow-hidden relative">
+                <div className="motion-card group bg-indigo-600 p-8 rounded-[2.5rem] shadow-2xl shadow-slate-200 dark:shadow-black/40 transition-all duration-500 hover:shadow-indigo-300 dark:hover:shadow-black/60 hover:-translate-y-1 overflow-hidden relative">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full -z-10 group-hover:bg-white/20 transition-all"></div>
                     <div className="flex items-center justify-between mb-8">
                         <div className="p-4 bg-white/20 rounded-3xl group-hover:scale-110 transition-transform duration-500">
@@ -321,7 +321,7 @@ const DashboardOverview: React.FC = () => {
             </div>
 
             {/* Bottom Section: Category Breakdown */}
-            <div className="w-full bg-slate-50 dark:bg-slate-900 p-8 sm:p-10 rounded-[3.5rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-indigo-900/10 transition-all duration-500 hover:shadow-lg dark:hover:shadow-indigo-900/20">
+            <div className="motion-card w-full bg-slate-50 dark:bg-slate-900 p-8 sm:p-10 rounded-[3.5rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-indigo-900/10 transition-all duration-500 hover:shadow-lg dark:hover:shadow-indigo-900/20">
                 <div className="flex items-center justify-between mb-10">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl">

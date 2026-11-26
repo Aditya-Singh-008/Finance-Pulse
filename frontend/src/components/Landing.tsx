@@ -31,7 +31,7 @@ const Landing: React.FC = () => (
         <div className="flex items-center gap-2 sm:gap-4">
           <ThemeToggle />
           <Link to="/auth?mode=signin" className="hidden px-2 py-2 text-[13px] font-medium text-slate-700 transition-colors hover:text-forest dark:text-slate-200 sm:inline-flex">Sign in</Link>
-          <Link to="/auth?mode=signup" className="inline-flex items-center gap-2 rounded-md bg-forest px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-[#344637] focus-visible:outline-offset-4 sm:px-5">
+          <Link to="/auth?mode=signup" className="motion-button inline-flex items-center gap-2 rounded-md bg-forest px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-[#344637] focus-visible:outline-offset-4 sm:px-5">
             Get started <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </div>
@@ -52,7 +52,7 @@ const Landing: React.FC = () => (
             A thoughtful place to follow what comes in, what goes out, and what you want to do next.
           </p>
           <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-            <Link to="/auth?mode=signup" className="group inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-forest px-6 text-sm font-medium text-white transition-colors hover:bg-[#344637]">
+            <Link to="/auth?mode=signup" className="motion-button group inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-forest px-6 text-sm font-medium text-white transition-colors hover:bg-[#344637]">
               Create your account
               <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
@@ -67,10 +67,10 @@ const Landing: React.FC = () => (
         </div>
 
         <div className="relative mx-auto w-full max-w-[680px]">
-          <div className="overflow-hidden rounded-[3px] bg-[#e4dfd1]">
+          <div className="motion-card overflow-hidden rounded-[3px] bg-[#e4dfd1]">
             <img src={editorialImage} alt="A sunlit desk with a paper ledger, olive branch, and sculptural ceramic cup" fetchPriority="high" decoding="async" className="aspect-[1.18/1] w-full object-cover" />
           </div>
-          <div className="absolute -bottom-5 left-3 w-[min(330px,calc(100%-24px))] border border-rule bg-slate-50 p-5 shadow-[0_16px_60px_rgba(38,44,35,0.13)] dark:border-slate-700 dark:bg-slate-900 sm:bottom-8 sm:-left-8 sm:p-6">
+          <div className="motion-card absolute -bottom-5 left-3 w-[min(330px,calc(100%-24px))] border border-rule bg-slate-50 p-5 shadow-[0_16px_60px_rgba(38,44,35,0.13)] dark:border-slate-700 dark:bg-slate-900 sm:bottom-8 sm:-left-8 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.17em] text-slate-500 dark:text-slate-400">A sample monthly view</p>
@@ -101,18 +101,18 @@ const Landing: React.FC = () => (
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-moss">The everyday, made legible</p>
             <h2 className="mt-4 max-w-sm text-4xl leading-[1.04] text-ink dark:text-slate-100 sm:text-[3.25rem]">Good decisions start with a clear picture.</h2>
           </div>
-          <div className="grid gap-8 sm:grid-cols-3 sm:gap-6">
-            <article className="border-t border-[#d8d4c8] pt-5 dark:border-slate-700">
+          <div className="motion-stagger grid gap-8 sm:grid-cols-3 sm:gap-6">
+            <article className="motion-card border-t border-[#d8d4c8] pt-5 dark:border-slate-700">
               <WalletCards aria-hidden="true" className="h-5 w-5 text-forest dark:text-[#adbd9e]" />
               <h3 className="mt-5 text-[23px] leading-tight text-ink dark:text-slate-100">Know your flow</h3>
               <p className="mt-2 text-[13px] leading-6 text-slate-600 dark:text-slate-300">Keep income and everyday spending in one considered view.</p>
             </article>
-            <article className="border-t border-[#d8d4c8] pt-5 dark:border-slate-700">
+            <article className="motion-card border-t border-[#d8d4c8] pt-5 dark:border-slate-700">
               <BarChart3 aria-hidden="true" className="h-5 w-5 text-forest dark:text-[#adbd9e]" />
               <h3 className="mt-5 text-[23px] leading-tight text-ink dark:text-slate-100">Notice the patterns</h3>
               <p className="mt-2 text-[13px] leading-6 text-slate-600 dark:text-slate-300">See where money goes and how things shift over time.</p>
             </article>
-            <article id="privacy" className="border-t border-[#d8d4c8] pt-5 dark:border-slate-700">
+            <article id="privacy" className="motion-card border-t border-[#d8d4c8] pt-5 dark:border-slate-700">
               <LockKeyhole aria-hidden="true" className="h-5 w-5 text-forest dark:text-[#adbd9e]" />
               <h3 className="mt-5 text-[23px] leading-tight text-ink dark:text-slate-100">Keep it personal</h3>
               <p className="mt-2 text-[13px] leading-6 text-slate-600 dark:text-slate-300">Your financial records stay behind account-level access controls.</p>
@@ -126,7 +126,7 @@ const Landing: React.FC = () => (
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-moss">A calmer way to begin</p>
           <h2 className="mt-2 text-3xl text-ink dark:text-slate-100 sm:text-4xl">Make space for a better money habit.</h2>
         </div>
-        <Link to="/auth?mode=signup" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-3 self-start rounded-md bg-forest px-6 text-sm font-medium text-white transition-colors hover:bg-[#344637] md:self-center">
+        <Link to="/auth?mode=signup" className="motion-button inline-flex min-h-12 shrink-0 items-center justify-center gap-3 self-start rounded-md bg-forest px-6 text-sm font-medium text-white transition-colors hover:bg-[#344637] md:self-center">
           Get started <ArrowRight aria-hidden="true" className="h-4 w-4" />
         </Link>
       </section>

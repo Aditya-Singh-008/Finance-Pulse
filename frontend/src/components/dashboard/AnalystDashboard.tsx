@@ -180,7 +180,7 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
           <button
             onClick={() => refetch()}
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-3 bg-slate-900 dark:bg-slate-950 border border-slate-800 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:opacity-50"
+            className="motion-button flex items-center gap-2 px-5 py-3 bg-slate-900 dark:bg-slate-950 border border-slate-800 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:opacity-50"
           >
             <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             <span className="text-xs font-medium">Refresh overview</span>
@@ -194,8 +194,8 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
       </div>
 
       {/* Metric Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="group relative overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm dark:shadow-none transition-all duration-500 hover:border-indigo-500/40">
+      <div className="motion-stagger grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="motion-card group relative overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm dark:shadow-none transition-all duration-500 hover:border-indigo-500/40">
           <div className="bg-indigo-500/10 dark:bg-indigo-500/20 p-4 rounded-2xl w-fit mb-6 ring-1 ring-indigo-500/20 group-hover:scale-110 group-hover:rotate-6 transition-transform">
             <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
           </div>
@@ -203,7 +203,7 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
           <div className="text-3xl font-black text-slate-900 dark:text-white">{formatNumber(analytics.total_platform_users)}</div>
         </div>
         
-        <div className="group relative overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm dark:shadow-none transition-all duration-500 hover:border-violet-500/40">
+        <div className="motion-card group relative overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm dark:shadow-none transition-all duration-500 hover:border-violet-500/40">
           <div className="bg-violet-500/10 dark:bg-violet-500/20 p-4 rounded-2xl w-fit mb-6 ring-1 ring-violet-500/20 group-hover:scale-110 group-hover:rotate-6 transition-transform">
             <Activity className="w-6 h-6 text-violet-600 dark:text-violet-400" />
           </div>
@@ -211,7 +211,7 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
           <div className="text-3xl font-black text-slate-900 dark:text-white">{formatCurrency(analytics.total_transaction_volume)}</div>
         </div>
         
-        <div className="group relative overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm dark:shadow-none transition-all duration-500 hover:border-emerald-500/40">
+        <div className="motion-card group relative overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm dark:shadow-none transition-all duration-500 hover:border-emerald-500/40">
           <div className="bg-emerald-500/10 dark:bg-emerald-500/20 p-4 rounded-2xl w-fit mb-6 ring-1 ring-emerald-500/20 group-hover:scale-110 group-hover:rotate-6 transition-transform">
             <BarChart className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
           </div>
@@ -219,7 +219,7 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
           <div className="text-3xl font-black text-slate-900 dark:text-white">{formatNumber(analytics.total_transaction_count)}</div>
         </div>
 
-        <div className="group relative overflow-hidden bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 transition-all duration-500 hover:border-purple-500/40">
+        <div className="motion-card group relative overflow-hidden bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 transition-all duration-500 hover:border-purple-500/40">
           <div className="bg-purple-500/10 p-4 rounded-2xl w-fit mb-6 ring-1 ring-purple-500/20 group-hover:scale-110 group-hover:rotate-6 transition-transform">
             <Globe className="w-6 h-6 text-purple-400" />
           </div>
@@ -229,7 +229,7 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
       </div>
 
       {/* Financial Trends Section */}
-      <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-10 shadow-sm dark:shadow-none relative">
+      <div className="motion-card bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-10 shadow-sm dark:shadow-none relative">
         <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
           <div>
             <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Income and spending</h3>
@@ -299,7 +299,7 @@ const AnalystDashboard: React.FC<AnalystDashboardProps> = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-10 flex flex-col items-center shadow-sm dark:shadow-none">
+        <div className="motion-card bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-10 flex flex-col items-center shadow-sm dark:shadow-none">
           <div className="w-full flex items-center justify-between mb-8">
             <div>
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">Spending by category</h3>

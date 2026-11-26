@@ -158,7 +158,7 @@ const AdminUserManagement: React.FC = () => {
   }
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-10 mt-12 overflow-hidden shadow-sm dark:shadow-none animate-in fade-in slide-in-from-bottom-8 duration-1000">
+    <div className="motion-enter bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-10 mt-12 overflow-hidden shadow-sm dark:shadow-none animate-in fade-in slide-in-from-bottom-8 duration-1000">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -184,7 +184,7 @@ const AdminUserManagement: React.FC = () => {
           <button 
             onClick={fetchUsers}
             aria-label="Refresh user list"
-            className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl hover:bg-indigo-500/20 transition-all"
+            className="motion-button p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl hover:bg-indigo-500/20 transition-all"
           >
             <RefreshCw className={`w-5 h-5 text-indigo-500 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -219,10 +219,10 @@ const AdminUserManagement: React.FC = () => {
               </tr>
             ) : (
               filteredUsers.map((user) => (
-                <tr key={user.id} className="group hover:bg-slate-100/50 dark:hover:bg-indigo-500/5 transition-all duration-300">
+                <tr key={user.id} className="motion-row group hover:bg-slate-100/50 dark:hover:bg-indigo-500/5 transition-all duration-300">
                   <td className="py-6 px-6">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-forest flex items-center justify-center text-white font-semibold text-xl">
+                      <div className="motion-icon w-12 h-12 rounded-2xl bg-forest flex items-center justify-center text-white font-semibold text-xl">
                         {user.full_name?.[0]?.toUpperCase() || '?'}
                       </div>
                       <div>

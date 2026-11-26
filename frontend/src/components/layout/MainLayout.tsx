@@ -58,7 +58,7 @@ const MainLayout: React.FC = () => {
             aria-selected={activeTab === id}
             aria-controls="workspace-panel"
             onClick={() => setActiveTab(id)}
-            className={`relative inline-flex min-h-11 items-center gap-2.5 px-4 text-[13px] font-medium transition-colors focus-visible:z-10 sm:px-5 ${activeTab === id ? 'text-forest dark:text-[#c7d2bb]' : 'text-slate-500 hover:text-ink dark:text-slate-300 dark:hover:text-white'}`}
+            className={`motion-tab relative inline-flex min-h-11 items-center gap-2.5 px-4 text-[13px] font-medium transition-colors focus-visible:z-10 sm:px-5 ${activeTab === id ? 'text-forest dark:text-[#c7d2bb]' : 'text-slate-500 hover:text-ink dark:text-slate-300 dark:hover:text-white'}`}
           >
             <Icon aria-hidden="true" className="h-4 w-4" />
             {label}

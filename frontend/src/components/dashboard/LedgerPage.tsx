@@ -125,7 +125,7 @@ const LedgerPage: React.FC = () => {
             </div>
 
             {/* Advanced Filters Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 p-6 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm">
+            <div className="motion-card grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 p-6 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm">
                 {/* Search */}
                 <div className="relative group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
@@ -239,9 +239,9 @@ const LedgerPage: React.FC = () => {
                     <p className="text-slate-500 dark:text-slate-400 text-lg font-medium">No transactions match this date range or filter.</p>
                 </div>
             ) : (
-                <div className="space-y-10">
+                <div className="motion-stagger space-y-10">
                     {Object.entries(groupedTransactions).map(([month, txs]) => (
-                        <div key={month} className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
+                        <div key={month} className="motion-card bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
                             <div className="bg-slate-50 border-b border-slate-100 dark:border-slate-800 dark:bg-slate-950/50 px-8 py-5 flex items-center gap-3">
                                 <Calendar className="w-5 h-5 text-indigo-500" />
                                 <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">{month}</h2>
@@ -258,7 +258,7 @@ const LedgerPage: React.FC = () => {
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                         {txs.map((tx: Transaction) => (
-                                            <tr key={tx.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                                            <tr key={tx.id} className="motion-row hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                                                 <td className="px-8 py-5">
                                                     <div className="flex items-center gap-4">
                                                         <div className={[
