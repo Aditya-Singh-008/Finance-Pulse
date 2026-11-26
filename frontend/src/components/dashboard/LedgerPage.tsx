@@ -115,12 +115,12 @@ const LedgerPage: React.FC = () => {
     return (
         <div className="space-y-8 animate-in fade-in duration-500 w-full max-w-full">
             <div className="flex items-center gap-4 mb-2">
-                <Link to="/dashboard" className="p-2 bg-slate-100 dark:bg-slate-900 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                <Link to="/dashboard" aria-label="Back to overview" className="p-2 bg-slate-100 dark:bg-slate-900 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
                     <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                 </Link>
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Full Ledger</h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">A complete chronological history of your financial data</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Transaction history</h1>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Search and filter your income and expenses</p>
                 </div>
             </div>
 
@@ -134,6 +134,7 @@ const LedgerPage: React.FC = () => {
                     )}
                     <input 
                         type="text" 
+                        aria-label="Search transactions by description"
                         placeholder="Search description..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -143,6 +144,7 @@ const LedgerPage: React.FC = () => {
 
                 {/* Type Filter */}
                 <select 
+                    aria-label="Filter by transaction type"
                     value={filters.type}
                     onChange={(e) => handleFilterChange({ type: e.target.value as any })}
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-bold"
@@ -154,6 +156,7 @@ const LedgerPage: React.FC = () => {
 
                 {/* Category Filter */}
                 <select 
+                    aria-label="Filter by category"
                     value={filters.category_id}
                     onChange={(e) => handleFilterChange({ category_id: e.target.value })}
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-bold"
@@ -167,6 +170,7 @@ const LedgerPage: React.FC = () => {
                 {/* Date Filter */}
                 <div className="flex flex-col gap-2 relative">
                     <select 
+                        aria-label="Filter by date range"
                         value={dateFilterMode}
                         onChange={(e) => handleDateModeChange(e.target.value)}
                         className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-bold"
@@ -175,7 +179,7 @@ const LedgerPage: React.FC = () => {
                         <option value="7days">Last 7 Days</option>
                         <option value="thisMonth">This Month</option>
                         <option value="lastMonth">Last Month</option>
-                        <option value="custom">Custom Calendar...</option>
+                        <option value="custom">Custom dates…</option>
                     </select>
 
                     {dateFilterMode === 'custom' && (
@@ -183,6 +187,7 @@ const LedgerPage: React.FC = () => {
                             <div className="relative w-1/2">
                                 <input 
                                     type="text" 
+                                    aria-label="Start date"
                                     placeholder="YYYY-MM-DD"
                                     value={filters.startDate}
                                     onChange={(e) => handleFilterChange({ startDate: e.target.value })}
@@ -190,15 +195,17 @@ const LedgerPage: React.FC = () => {
                                 />
                                 <input 
                                     type="date" 
+                                    aria-label="Choose start date"
                                     value={filters.startDate}
                                     onChange={(e) => handleFilterChange({ startDate: e.target.value })}
-                                    className="absolute right-0 top-0 w-8 h-full opacity-0 cursor-pointer z-10"
+                                    className="absolute right-0 top-0 w-8 h-full opacity-0 focus:opacity-100 focus-visible:ring-2 focus-visible:ring-forest cursor-pointer z-10"
                                 />
                                 <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                             </div>
                             <div className="relative w-1/2">
                                 <input 
                                     type="text" 
+                                    aria-label="End date"
                                     placeholder="YYYY-MM-DD"
                                     value={filters.endDate}
                                     onChange={(e) => handleFilterChange({ endDate: e.target.value })}
@@ -206,9 +213,10 @@ const LedgerPage: React.FC = () => {
                                 />
                                 <input 
                                     type="date" 
+                                    aria-label="Choose end date"
                                     value={filters.endDate}
                                     onChange={(e) => handleFilterChange({ endDate: e.target.value })}
-                                    className="absolute right-0 top-0 w-8 h-full opacity-0 cursor-pointer z-10"
+                                    className="absolute right-0 top-0 w-8 h-full opacity-0 focus:opacity-100 focus-visible:ring-2 focus-visible:ring-forest cursor-pointer z-10"
                                 />
                                 <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                             </div>
@@ -228,7 +236,7 @@ const LedgerPage: React.FC = () => {
             ) : transactions.length === 0 ? (
                 <div className="bg-white dark:bg-slate-900 p-12 rounded-[3rem] border border-slate-100 dark:border-slate-800 text-center">
                     <Search className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-4" />
-                    <p className="text-slate-500 dark:text-slate-400 text-lg font-medium">No transactions found in this ledger.</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-lg font-medium">No transactions match this date range or filter.</p>
                 </div>
             ) : (
                 <div className="space-y-10">

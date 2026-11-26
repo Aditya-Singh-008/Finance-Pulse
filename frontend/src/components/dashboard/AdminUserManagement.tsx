@@ -43,7 +43,6 @@ const AdminUserManagement: React.FC = () => {
 
   const fetchUsers = useCallback(async () => {
     try {
-      console.log('DEBUG: ADMIN CONTROL CENTER - Protocol Request Initiated...');
       setLoading(true);
       // Explicitly use GET method to avoid default empty-body POST
       const { data, error } = await supabase.functions.invoke('manage-users', {
@@ -64,7 +63,6 @@ const AdminUserManagement: React.FC = () => {
         throw new Error(message || 'Access Denied');
       }
       
-      console.log('DEBUG: DATA RECALIBRATED SUCCESSFULEY:', data);
       // Handle response structure (sometimes it's double wrapped)
       const list = Array.isArray(data) ? data : data?.data || [];
       setUsers(list);
@@ -73,14 +71,13 @@ const AdminUserManagement: React.FC = () => {
       console.error('Admin Panel Error:', err);
       const msg = err.message || 'Access Denied';
       setError(msg);
-      toast.error('Failed to load user protocols: ' + msg);
+      toast.error('Unable to load users: ' + msg);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    console.log('DEBUG: ADMIN CONTROL CENTER - Integrity Shield Active (Component Mounted)');
     supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id || null));
     fetchUsers();
   }, [fetchUsers]);
@@ -96,11 +93,11 @@ const AdminUserManagement: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('Core status recalibrated.');
+      toast.success('User access updated.');
       // Update local state
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updates } : u));
     } catch (err: any) {
-      toast.error('Recalibration failed: ' + err.message);
+      toast.error('Unable to update user: ' + err.message);
     } finally {
       setUpdatingId(null);
     }
@@ -130,13 +127,13 @@ const AdminUserManagement: React.FC = () => {
             <div className="bg-rose-500/10 p-5 rounded-2xl w-fit mx-auto mb-6">
                <ShieldAlert className="w-10 h-10 text-rose-500" />
             </div>
-            <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Clearance <span className="text-rose-500 uppercase">Suspended</span></h3>
+            <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Admin access <span className="text-rose-500">unavailable</span></h3>
             <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed">
-              Your administrative credentials are <span className="text-rose-500 font-bold uppercase tracking-widest">Inactive</span>. Identity and access management controls have been locked for security.
+              Your admin access is inactive. Contact an administrator if you think this should be changed.
             </p>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-lg border border-slate-700 text-slate-400 font-bold uppercase tracking-[0.2em] text-[8px]">
                <ShieldAlert className="w-3 h-3 text-rose-500" />
-               Security Containment Active
+               Account status
             </div>
           </div>
         </div>
@@ -147,7 +144,7 @@ const AdminUserManagement: React.FC = () => {
       <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-10 mt-12 min-h-[400px] flex items-center justify-center">
         <div className="bg-red-500/10 border border-red-500/20 rounded-3xl p-8 max-w-md text-center backdrop-blur-md">
           <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">IAM Sync Error</h3>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Couldn&apos;t load users</h3>
           <p className="text-slate-600 dark:text-slate-400 mb-6">{error}</p>
           <button
             onClick={fetchUsers}
@@ -166,10 +163,10 @@ const AdminUserManagement: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Shield className="w-5 h-5 text-rose-500" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-500">Access Control Center</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-500">Account administration</span>
           </div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Identity & <span className="text-rose-500">Role Management</span></h2>
-          <p className="text-slate-600 dark:text-slate-400 font-medium mt-1">Audit and update platform access levels in real-time.</p>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">User access</h2>
+          <p className="text-slate-600 dark:text-slate-400 font-medium mt-1">Review user roles and account status.</p>
         </div>
 
         <div className="flex gap-4">
@@ -177,7 +174,8 @@ const AdminUserManagement: React.FC = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
             <input 
               type="text" 
-              placeholder="Search registry..."
+              aria-label="Search users by name or role"
+              placeholder="Search by name or role..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white pl-12 pr-6 py-3 rounded-2xl w-full focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium text-sm"
@@ -185,6 +183,7 @@ const AdminUserManagement: React.FC = () => {
           </div>
           <button 
             onClick={fetchUsers}
+            aria-label="Refresh user list"
             className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl hover:bg-indigo-500/20 transition-all"
           >
             <RefreshCw className={`w-5 h-5 text-indigo-500 ${loading ? 'animate-spin' : ''}`} />
@@ -197,9 +196,9 @@ const AdminUserManagement: React.FC = () => {
           <thead>
             <tr className="border-b border-slate-200 dark:border-slate-800">
               <th className="text-left py-4 px-6 text-[10px] uppercase tracking-[0.2em] font-black text-slate-600 dark:text-slate-400">Identity</th>
-              <th className="text-left py-4 px-6 text-[10px] uppercase tracking-[0.2em] font-black text-slate-600 dark:text-slate-400">Current Role</th>
-              <th className="text-left py-4 px-6 text-[10px] uppercase tracking-[0.2em] font-black text-slate-600 dark:text-slate-400">Integrity Status</th>
-              <th className="text-right py-4 px-6 text-[10px] uppercase tracking-[0.2em] font-black text-slate-600 dark:text-slate-400">Access Protocols</th>
+              <th className="text-left py-4 px-6 text-[10px] uppercase tracking-[0.2em] font-black text-slate-600 dark:text-slate-400">Role</th>
+              <th className="text-left py-4 px-6 text-[10px] uppercase tracking-[0.2em] font-black text-slate-600 dark:text-slate-400">Account status</th>
+              <th className="text-right py-4 px-6 text-[10px] uppercase tracking-[0.2em] font-black text-slate-600 dark:text-slate-400">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
@@ -223,7 +222,7 @@ const AdminUserManagement: React.FC = () => {
                 <tr key={user.id} className="group hover:bg-slate-100/50 dark:hover:bg-indigo-500/5 transition-all duration-300">
                   <td className="py-6 px-6">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-500/20">
+                      <div className="w-12 h-12 rounded-2xl bg-forest flex items-center justify-center text-white font-semibold text-xl">
                         {user.full_name?.[0]?.toUpperCase() || '?'}
                       </div>
                       <div>
@@ -245,9 +244,10 @@ const AdminUserManagement: React.FC = () => {
                     </div>
                   </td>
                   <td className="py-6 px-6">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0 transition-transform">
+                    <div className="flex items-center justify-end gap-2 opacity-100 transition-opacity">
                       {/* Update Role Actions */}
                       <select 
+                        aria-label={`Change ${user.full_name || 'user'} role`}
                         disabled={updatingId === user.id || user.id === currentUserId}
                         value={user.role}
                         onChange={(e) => handleUpdate(user.id, { role: e.target.value as any })}
@@ -273,7 +273,8 @@ const AdminUserManagement: React.FC = () => {
                             ? 'bg-rose-50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30 text-rose-500 hover:bg-rose-500 hover:text-white' 
                             : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30 text-emerald-500 hover:bg-emerald-500 hover:text-white'
                         }`}
-                        title={user.id === currentUserId ? 'Self-Modification Locked' : (user.status === 'active' ? 'Deactivate Node' : 'Initialize Node')}
+                        aria-label={user.id === currentUserId ? 'Your account status cannot be changed here' : (user.status === 'active' ? 'Deactivate user' : 'Activate user')}
+                        title={user.id === currentUserId ? 'Your account status cannot be changed here' : (user.status === 'active' ? 'Deactivate user' : 'Activate user')}
                       >
                         {user.status === 'active' ? <UserMinus className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                       </button>

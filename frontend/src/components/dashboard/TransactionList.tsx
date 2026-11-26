@@ -204,6 +204,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                     )}
                     <input 
                         type="text" 
+                        aria-label="Search transactions by description"
                         placeholder="Search description..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -213,6 +214,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
                 {/* Type Filter */}
                 <select 
+                    aria-label="Filter by transaction type"
                     value={filters.type}
                     onChange={(e) => setFilters(f => ({ ...f, type: e.target.value as any }))}
                     className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-bold"
@@ -224,6 +226,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
                 {/* Category Filter */}
                 <select 
+                    aria-label="Filter by category"
                     value={filters.category_id}
                     onChange={(e) => setFilters(f => ({ ...f, category_id: e.target.value }))}
                     className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-bold"
@@ -237,6 +240,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                 {/* Date Filter Toggle / Summary */}
                 <div className="flex flex-col gap-2 relative">
                     <select 
+                        aria-label="Filter by date range"
                         value={dateFilterMode}
                         onChange={(e) => handleDateModeChange(e.target.value)}
                         className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-bold"
@@ -290,7 +294,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
             {transactions.length === 0 ? (
                 <div className="flex flex-col items-center py-20 opacity-50 bg-slate-50/50 dark:bg-slate-950/50 rounded-[2rem] border border-dashed border-slate-200 dark:border-slate-800">
                     <Search className="w-12 h-12 text-slate-300 dark:text-slate-700 mb-4" />
-                    <p className="font-medium text-slate-400 dark:text-slate-600">No recent transactions found.</p>
+                    <p className="font-medium text-slate-400 dark:text-slate-600">No transactions match these filters.</p>
                 </div>
             ) : (
                 <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -353,6 +357,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                                                         <button
                                                             onClick={() => setEditingTx(tx)}
                                                             className="p-2.5 text-slate-300 dark:text-slate-700 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-all duration-200 active:scale-90"
+                                                            aria-label={`Edit ${tx.description || 'transaction'}`}
                                                             title="Edit transaction"
                                                         >
                                                             <Pencil className="w-4 h-4" />
@@ -362,6 +367,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                                                         onClick={() => setIdToDelete(tx.id)}
                                                         disabled={isDeleting === tx.id}
                                                         className="p-2.5 text-slate-300 dark:text-slate-700 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 active:scale-90 disabled:opacity-50"
+                                                        aria-label={`Delete ${tx.description || 'transaction'}`}
                                                         title="Delete transaction"
                                                     >
                                                         <Trash2 className="w-4 h-4" />

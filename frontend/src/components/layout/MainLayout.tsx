@@ -1,149 +1,93 @@
-/**
- * MainLayout.tsx
- * ─────────────────────────────────────────────────────────────────────────────
- * A navigation wrapper that manages the dashboard context.
- * Features:
- * - Tab switching between 'Personal Wallet' and 'Platform Analytics'.
- * - Role-based access control: 'Platform Analytics' is only for admin/analyst.
- * - Manages activeTab state to switch between DashboardOverview and AnalystDashboard.
- * ─────────────────────────────────────────────────────────────────────────────
- */
-
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import DashboardOverview from '../dashboard/DashboardOverview';
-import AnalystDashboard from '../dashboard/AnalystDashboard';
+const AnalystDashboard = React.lazy(() => import('../dashboard/AnalystDashboard'));
 import AdminUserManagement from '../dashboard/AdminUserManagement';
-import { Wallet, BarChart2, ShieldCheck, ChevronRight, Shield } from 'lucide-react';
+import { BarChart3, ShieldCheck, Users, WalletCards } from 'lucide-react';
 
 type TabType = 'personal' | 'analyst' | 'iam';
 
 const MainLayout: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<TabType>('personal');
-    const [userRole, setUserRole] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabType>('personal');
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchUserRole = async () => {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('role')
-                        .eq('id', user.id)
-                        .single();
-                    setUserRole(profile?.role || 'viewer');
-                }
-            } catch (err) {
-                console.error('Error fetching role for navigation:', err);
-                setUserRole('viewer');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchUserRole();
-    }, []);
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+          setUserRole(profile?.role || 'viewer');
+        }
+      } catch (error) {
+        console.error('Error fetching role for navigation:', error);
+        setUserRole('viewer');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUserRole();
+  }, []);
 
-    const isAuthorizedForAnalytics = userRole === 'admin' || userRole === 'analyst';
+  const isAuthorizedForAnalytics = userRole === 'admin' || userRole === 'analyst';
 
-    if (loading) {
-        return (
-            <div className="space-y-4 animate-pulse">
-                <div className="h-14 w-full bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800"></div>
-                <div className="h-[600px] w-full bg-slate-50 dark:bg-slate-950/50 rounded-[3rem]"></div>
-            </div>
-        );
-    }
-
+  if (loading) {
     return (
-        <div className="space-y-8">
-            {/* Context Navigation Bar */}
-            <div className="bg-white dark:bg-slate-900 p-2 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center shadow-sm sticky top-20 z-10 transition-all duration-300">
-                <div className="flex flex-1 items-center gap-1">
-                    <button
-                        onClick={() => setActiveTab('personal')}
-                        className={`
-                            flex items-center gap-3 px-6 py-2.5 rounded-xl font-bold transition-all duration-300
-                            ${activeTab === 'personal' 
-                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' 
-                                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
-                            }
-                        `}
-                    >
-                        <Wallet className={`w-4 h-4 ${activeTab === 'personal' ? 'animate-bounce' : ''}`} />
-                        <span>Personal Wallet</span>
-                    </button>
-
-                    {isAuthorizedForAnalytics && (
-                        <>
-                            <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
-                            <button
-                                onClick={() => setActiveTab('analyst')}
-                                className={`
-                                    flex items-center gap-3 px-6 py-2.5 rounded-xl font-bold transition-all duration-300
-                                    ${activeTab === 'analyst' 
-                                        ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/30' 
-                                        : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
-                                    }
-                                `}
-                            >
-                                <BarChart2 className={`w-4 h-4 ${activeTab === 'analyst' ? 'rotate-12 transition-transform' : ''}`} />
-                                <span>Platform Analytics</span>
-                            </button>
-                        </>
-                    )}
-
-                    {userRole === 'admin' && (
-                        <>
-                            <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
-                            <button
-                                onClick={() => setActiveTab('iam')}
-                                className={`
-                                    flex items-center gap-3 px-6 py-2.5 rounded-xl font-bold transition-all duration-300
-                                    ${activeTab === 'iam' 
-                                        ? 'bg-rose-600 text-white shadow-lg shadow-rose-500/30' 
-                                        : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
-                                    }
-                                `}
-                            >
-                                <Shield className={`w-4 h-4 ${activeTab === 'iam' ? 'scale-110' : ''}`} />
-                                <span className="hidden md:inline">Access Control Center</span>
-                                <span className="md:hidden">Access</span>
-                            </button>
-                        </>
-                    )}
-                </div>
-
-                <div className="hidden md:flex items-center gap-2 px-4 border-l border-slate-200 dark:border-slate-800">
-                    <ShieldCheck className="w-4 h-4 text-indigo-500" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                        {userRole === 'admin' && 'Security Cleared: ADMIN'}
-                        {userRole === 'analyst' && 'Security Cleared: ANALYST'}
-                        {userRole === 'viewer' && 'Standard Access: VIEWER'}
-                        {!['admin', 'analyst', 'viewer'].includes(userRole || '') && `Role: ${userRole?.toUpperCase()}`}
-                    </span>
-                    <ChevronRight className="w-3 h-3 text-slate-300 dark:text-slate-700" />
-                </div>
-            </div>
-
-            {/* Dashboard Rendering Zone */}
-            <div className={`transition-all duration-500 transform ${activeTab === 'analyst' ? 'analyst-theme' : ''}`}>
-                {activeTab === 'personal' && <DashboardOverview />}
-                {activeTab === 'analyst' && <AnalystDashboard />}
-                {activeTab === 'iam' && <AdminUserManagement />}
-            </div>
-
-            {/* Global style injection for Analyst Theme if needed */}
-            {activeTab === 'analyst' && (
-                <style dangerouslySetInnerHTML={{ __html: `
-                    .analyst-theme {
-                        --dashboard-bg: #0f172a;
-                    }
-                `}} />
-            )}
-        </div>
+      <div role="status" aria-label="Loading workspace" className="space-y-4 animate-pulse">
+        <div className="h-12 w-full border border-rule bg-slate-50 dark:border-slate-800 dark:bg-slate-900" />
+        <div className="h-[520px] w-full bg-slate-50 dark:bg-slate-900" />
+      </div>
     );
+  }
+
+  const tabs: { id: TabType; label: string; icon: typeof WalletCards; visible: boolean }[] = [
+    { id: 'personal', label: 'Personal', icon: WalletCards, visible: true },
+    { id: 'analyst', label: 'Analytics', icon: BarChart3, visible: isAuthorizedForAnalytics },
+    { id: 'iam', label: 'Access', icon: Users, visible: userRole === 'admin' },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div role="tablist" aria-label="Workspace views" className="flex w-full flex-wrap items-center gap-1 border-b border-rule dark:border-slate-800">
+        {tabs.filter((tab) => tab.visible).map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            id={`${id}-tab`}
+            role="tab"
+            aria-selected={activeTab === id}
+            aria-controls="workspace-panel"
+            onClick={() => setActiveTab(id)}
+            className={`relative inline-flex min-h-11 items-center gap-2.5 px-4 text-[13px] font-medium transition-colors focus-visible:z-10 sm:px-5 ${activeTab === id ? 'text-forest dark:text-[#c7d2bb]' : 'text-slate-500 hover:text-ink dark:text-slate-300 dark:hover:text-white'}`}
+          >
+            <Icon aria-hidden="true" className="h-4 w-4" />
+            {label}
+            {activeTab === id && <span aria-hidden="true" className="absolute inset-x-3 -bottom-px h-0.5 bg-forest dark:bg-[#adbd9e]" />}
+          </button>
+        ))}
+        <div className="ml-auto hidden items-center gap-2 pb-2 pl-4 text-[10px] font-medium text-slate-500 dark:text-slate-400 md:flex">
+          <ShieldCheck aria-hidden="true" className="h-4 w-4 text-moss" />
+          {userRole ? `${userRole.charAt(0).toUpperCase()}${userRole.slice(1)} access` : 'Workspace'}
+        </div>
+      </div>
+
+      <div id="workspace-panel" role="tabpanel" aria-labelledby={`${activeTab}-tab`} className="min-w-0 animate-in fade-in duration-300">
+        {activeTab === 'personal' && <DashboardOverview />}
+        {activeTab === 'analyst' && (
+          <React.Suspense
+            fallback={(
+              <div role="status" className="flex min-h-96 items-center justify-center text-sm font-medium text-slate-500 dark:text-slate-300">
+                Loading analytics…
+              </div>
+            )}
+          >
+            <AnalystDashboard />
+          </React.Suspense>
+        )}
+        {activeTab === 'iam' && <AdminUserManagement />}
+      </div>
+    </div>
+  );
 };
 
 export default MainLayout;
