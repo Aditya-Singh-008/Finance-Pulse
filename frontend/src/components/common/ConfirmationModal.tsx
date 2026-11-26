@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { AlertCircle } from 'lucide-react';
 
 interface ConfirmationModalProps {
@@ -22,62 +22,24 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onCancel,
   isDanger = false,
 }) => {
-  const [isMounted, setIsMounted] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsMounted(true);
-      setTimeout(() => setIsVisible(true), 10);
-    } else {
-      setIsVisible(false);
-      const timer = setTimeout(() => setIsMounted(false), 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
-
-  if (!isMounted) return null;
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className={`absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
-        onClick={onCancel}
-      />
-      
-      {/* Panel */}
-      <div 
-        className={`relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden transition-all duration-300 ${isVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}
-      >
-        <div className="p-8">
-          <div className="flex items-center gap-4 mb-6">
-            <div className={`p-3 rounded-2xl ${isDanger ? 'bg-red-50 dark:bg-red-900/20 text-red-600' : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600'}`}>
-              <AlertCircle className="w-6 h-6" />
-            </div>
-            <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">{title}</h3>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-150">
+      <button type="button" className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onCancel} aria-label="Close confirmation dialog" />
+      <section role="dialog" aria-modal="true" aria-labelledby="confirmation-modal-title" aria-describedby="confirmation-modal-message" className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border bg-elevated shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="p-6 sm:p-8">
+          <div className="mb-5 flex items-center gap-3">
+            <span className={`flex size-10 items-center justify-center rounded-full ${isDanger ? 'bg-negative/10 text-negative' : 'bg-secondary text-primary'}`}><AlertCircle aria-hidden="true" className="size-5" /></span>
+            <h2 id="confirmation-modal-title" className="text-2xl">{title}</h2>
           </div>
-          
-          <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-8">
-            {message}
-          </p>
-          
+          <p id="confirmation-modal-message" className="mb-7 text-[12px] leading-6 text-muted">{message}</p>
           <div className="flex gap-3">
-            <button
-              onClick={onCancel}
-              className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95"
-            >
-              {cancelLabel}
-            </button>
-            <button
-              onClick={onConfirm}
-              className={`flex-1 px-6 py-4 text-white font-bold rounded-2xl transition-all active:scale-95 shadow-lg ${isDanger ? 'bg-red-600 hover:bg-red-700 shadow-red-100 dark:shadow-red-900/20' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100 dark:shadow-indigo-900/20'}`}
-            >
-              {confirmLabel}
-            </button>
+            <button type="button" onClick={onCancel} className="min-h-11 flex-1 border border-border bg-surface px-4 text-[11px] font-medium text-foreground transition-colors hover:bg-secondary">{cancelLabel}</button>
+            <button type="button" onClick={onConfirm} className={`motion-button min-h-11 flex-1 px-4 text-[11px] font-medium text-white transition-colors dark:text-slate-950 ${isDanger ? 'bg-negative hover:bg-negative/90' : 'bg-primary hover:bg-primary/90'}`}>{confirmLabel}</button>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

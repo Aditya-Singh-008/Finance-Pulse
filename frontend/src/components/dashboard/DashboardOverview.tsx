@@ -1,371 +1,160 @@
-/**
- * DashboardOverview.tsx
- * ─────────────────────────────────────────────────────────────────────────────
- * The main user interface for Finance Pulse. 
- * Handles loading states, empty states, and role-based admin controls.
- * ─────────────────────────────────────────────────────────────────────────────
- */
-
-import React, { useCallback, useState, useEffect, useRef } from 'react';
-import TransactionList from './TransactionList';
-import AdminUserSwitcher from './AdminUserSwitcher';
+import React, { useCallback, useEffect, useState } from 'react';
+import { AlertCircle, ArrowDownRight, ArrowUpRight, LockKeyhole, RefreshCcw, ShieldAlert } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useDashboard } from '../../hooks/useDashboard';
 import { useCategories } from '../../hooks/useCategories';
 import { useTransactions } from '../../hooks/useTransactions';
 import TransactionForm from './TransactionForm';
-import type { TransactionFormHandle } from './TransactionForm';
-import {
-    TrendingUp,
-    TrendingDown,
-    Wallet,
-    RefreshCcw,
-    Lock,
-    ShieldAlert,
-    AlertCircle,
-    PieChart,
-    ChevronRight,
-    ArrowUpRight,
-    ArrowDownRight
-} from 'lucide-react';
+import TransactionList from './TransactionList';
+import AdminUserSwitcher from './AdminUserSwitcher';
+
+const formatCurrency = (amount: number) => new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+}).format(amount);
 
 const DashboardOverview: React.FC = () => {
-    const { data, loading, error, refetch: refetchDashboard, selectedUserId, setSelectedUserId } = useDashboard();
-    const formRef = useRef<TransactionFormHandle>(null);
+  const { data, loading, error, refetch: refetchDashboard, selectedUserId, setSelectedUserId } = useDashboard();
+  const { categories } = useCategories();
+  const { refetch: refetchTransactions } = useTransactions(5, selectedUserId);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
-    // Fetch real categories from Supabase once on mount.
-    const { categories } = useCategories();
-
-    // Transaction history hook for the activity table — we pass the selectedUserId
-    // here to ensure that refetching also targets the selected user's data.
-    const { refetch: refetchTx } = useTransactions(5, selectedUserId);
-
-    // Track current user's role to conditionally show admin tools
-    const [userRole, setUserRole] = useState<string | null>(null);
-
-    // 1. Fetch user role on mount for security checks
-    useEffect(() => {
-        const fetchRole = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single();
-                setUserRole(profile?.role || 'viewer');
-            }
-        };
-        fetchRole();
-    }, []);
-
-    /**
-     * Unified refetch handler — called whenever a new transaction is successfully
-     * recorded. Triggers both the Edge Function (aggregates) and the direct DB fetch.
-     */
-    const handleRefresh = useCallback(() => {
-        refetchDashboard();
-        refetchTx();
-    }, [refetchDashboard, refetchTx]);
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-        }).format(amount);
+  useEffect(() => {
+    const fetchRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        setUserRole(profile?.role || 'viewer');
+      }
     };
+    fetchRole();
+  }, []);
 
-    /** ──────── PHASE 1: LOADING STATE (SKELETON UI) ──────── */
-    if (loading) {
-        return (
-            <div className="space-y-10 animate-pulse">
-                {/* Header Skeleton */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <div className="space-y-2">
-                        <div className="h-10 w-64 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
-                        <div className="h-5 w-80 bg-slate-100 dark:bg-slate-900 rounded-xl"></div>
-                    </div>
-                    <div className="flex gap-3">
-                        <div className="h-12 w-32 bg-slate-100 dark:bg-slate-900 rounded-2xl"></div>
-                        <div className="h-12 w-40 bg-slate-100 dark:bg-slate-900 rounded-2xl"></div>
-                    </div>
-                </div>
+  const handleRefresh = useCallback(() => {
+    refetchDashboard();
+    refetchTransactions();
+  }, [refetchDashboard, refetchTransactions]);
 
-                {/* Metric Cards Skeleton */}
-                <div className="grid md:grid-cols-3 gap-8">
-                    {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-56 bg-slate-100 dark:bg-slate-900 rounded-[2.5rem] border border-slate-200/50 dark:border-slate-800/50"></div>
-                    ))}
-                </div>
-
-                {/* Main Content Skeleton */}
-                <div className="grid lg:grid-cols-3 gap-8">
-                    {/* Activity List Placeholder */}
-                    <div className="lg:col-span-2 h-[560px] bg-slate-100 dark:bg-slate-900 rounded-[3rem] border border-slate-200/50 dark:border-slate-800/50"></div>
-
-                    {/* Category Breakdown Sidebar Placeholder */}
-                    <div className="p-8 bg-slate-100 dark:bg-slate-900 rounded-[3rem] border border-slate-200/50 dark:border-slate-800/50 flex flex-col gap-6">
-                        <div className="h-6 w-1/2 bg-slate-200 dark:bg-slate-800 rounded-xl mb-2"></div>
-                        {[1, 2, 3, 4, 5].map(i => (
-                            <div key={i} className="flex flex-col gap-2">
-                                <div className="h-4 w-1/3 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
-                                <div className="h-10 w-full bg-slate-50 dark:bg-slate-800/50 rounded-xl"></div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    /** ──────── PHASE 3: ERROR BOUNDARY ──────── */
-    if (error) {
-        const isInactive = error.toLowerCase().includes('inactive');
-        
-        if (isInactive) {
-            return (
-                <div className="flex flex-col items-center justify-center py-12 text-center animate-in zoom-in duration-500 max-w-md mx-auto">
-                    <div className="bg-amber-100/50 dark:bg-amber-900/20 p-6 rounded-3xl mb-6 border-2 border-amber-500/20 relative shadow-lg shadow-amber-500/5">
-                        <Lock className="w-12 h-12 text-amber-600 dark:text-amber-500" />
-                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-600 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900">
-                           <AlertCircle className="w-2.5 h-2.5 text-white" />
-                        </div>
-                    </div>
-                    <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">
-                        Account access <span className="text-amber-600">unavailable</span>
-                    </h3>
-                    <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm text-base leading-relaxed font-medium px-4">
-                        This account is inactive, so financial data is unavailable. Contact your administrator if you think this should be changed.
-                    </p>
-                    <div className="px-6 py-3 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 w-full flex items-center justify-center gap-3">
-                        <ShieldAlert className="w-4 h-4 text-amber-600" />
-                        <span className="text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest text-[10px]">Account status</span>
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <div className="flex flex-col items-center justify-center py-32 text-center animate-in fade-in duration-500">
-                <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-[2rem] mb-8">
-                    <AlertCircle className="w-16 h-16 text-red-600 dark:text-red-400" />
-                </div>
-                <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight">We couldn&apos;t load your finances</h3>
-                <p className="text-slate-500 dark:text-slate-400 mb-10 max-w-sm text-lg leading-relaxed font-medium">
-                    We couldn&apos;t load your financial data right now. Please try again or contact support if the issue persists.
-                </p>
-                <div className="flex gap-4">
-                    <button
-                        onClick={handleRefresh}
-                        className="flex items-center gap-3 px-10 py-4 bg-indigo-600 text-white font-bold rounded-[2rem] hover:bg-indigo-700 transition-all shadow-xl shadow-slate-200 dark:shadow-indigo-900/50 active:scale-95"
-                    >
-                        <RefreshCcw className="w-5 h-5" />
-                        Try again
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    /** ──────── PHASE 2: EMPTY STATE ──────── */
-    const isDashboardEmpty =
-        !data ||
-        (data.total_income === 0 && data.total_expenses === 0 && (!data.category_breakdown || data.category_breakdown.length === 0));
-
-    if (isDashboardEmpty) {
-        return (
-            <div className="space-y-10 animate-in fade-in duration-1000">
-                {/* Header always stays visible even in empty state so user can still switch users if admin */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <div>
-                        <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
-                            Hello, <span className="text-indigo-600 dark:text-indigo-400">{data?.user_name || 'there'}</span>!
-                        </h1>
-                        <p className="text-slate-600 dark:text-slate-400 font-medium">Add a first transaction to see a clearer picture of your income and spending.</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        {userRole === 'admin' && <AdminUserSwitcher onUserSelected={setSelectedUserId} />}
-                        {/* FORM LEAK PATCHED: Passed targetUserId into Empty State form */}
-                        <TransactionForm
-                            ref={formRef}
-                            categories={categories}
-                            onSuccess={handleRefresh}
-                            targetUserId={selectedUserId}
-                        />
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[4rem] p-8 sm:p-14 text-center shadow-sm relative overflow-hidden">
-                    <div className="relative z-10 flex flex-col items-center max-w-xl mx-auto">
-                        <div className="w-24 h-24 bg-indigo-50 dark:bg-indigo-900/30 rounded-[2.5rem] flex items-center justify-center mb-8 rotate-3 hover:rotate-0 transition-transform duration-500 shadow-inner">
-                            <Wallet className="w-12 h-12 text-indigo-600 dark:text-indigo-400" />
-                        </div>
-
-                        <h2 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight leading-tight">
-                            Your financial picture starts here
-                        </h2>
-
-                        <p className="text-lg text-slate-600 dark:text-slate-400 mb-10 font-medium leading-relaxed">
-                            Add your first transaction to bring income, spending, and category patterns into view.
-                        </p>
-
-                        <button
-                            onClick={() => formRef.current?.openModal()}
-                            className="group relative inline-flex items-center justify-center px-12 py-5 text-xl font-bold text-white bg-indigo-600 dark:bg-indigo-500 rounded-[2.5rem] hover:bg-indigo-700 dark:hover:bg-indigo-600 hover:-translate-y-1 transition-all duration-300 shadow-2xl shadow-slate-200 dark:shadow-indigo-950/50"
-                        >
-                            <span>Add first transaction</span>
-                            <ChevronRight className="w-6 h-6 ml-2 transform group-hover:translate-x-1 transition-transform" />
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-        );
-    }
-
-    /** ──────── MAIN DASHBOARD VIEW ──────── */
+  if (loading) {
     return (
-        <div className="space-y-10 animate-in fade-in duration-700">
-            {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
-                        Hello, <span className="text-indigo-600 dark:text-indigo-400">{data?.user_name || 'there'}</span>!
-                    </h1>
-                    <p className="text-slate-600 dark:text-slate-400 font-medium">Here&apos;s a clear view of your finances today.</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                    {userRole === 'admin' && (
-                        <AdminUserSwitcher onUserSelected={setSelectedUserId} />
-                    )}
-
-                    {/* FORM LEAK PATCHED: Passed targetUserId into Main form */}
-                    <TransactionForm
-                        ref={formRef}
-                        categories={categories}
-                        onSuccess={handleRefresh}
-                        targetUserId={selectedUserId}
-                    />
-                    <button
-                        onClick={handleRefresh}
-                        disabled={loading}
-                        className="motion-button inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-slate-950 border border-slate-800 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:opacity-50"
-                    >
-                        <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                        <span className="text-xs font-medium">Refresh overview</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* Summary Cards Top Row */}
-            <div className="motion-stagger grid md:grid-cols-3 gap-8">
-                {/* Total Income */}
-                <div className="motion-card group bg-slate-50 dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-indigo-900/40 hover:-translate-y-1 overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 dark:bg-emerald-900/20 rounded-bl-full -z-10 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 transition-all"></div>
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="p-4 bg-emerald-600/10 dark:bg-emerald-500/20 rounded-3xl group-hover:scale-110 transition-transform duration-500">
-                            <TrendingUp className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-                        </div>
-                        <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-lg text-xs font-bold border border-emerald-100 dark:border-emerald-800/50">
-                            <ArrowUpRight className="w-3 h-3" />
-                            <span>Income</span>
-                        </div>
-                    </div>
-                    <h3 className="text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest text-xs mb-2">Total Income</h3>
-                    <p className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                        {formatCurrency(data?.total_income || 0)}
-                    </p>
-                </div>
-
-                {/* Total Expenses */}
-                <div className="motion-card group bg-slate-50 dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-red-900/10 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-red-900/40 hover:-translate-y-1 overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 dark:bg-red-900/20 rounded-bl-full -z-10 group-hover:bg-red-100 dark:group-hover:bg-red-900/30 transition-all"></div>
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="p-4 bg-red-600/10 dark:bg-red-500/20 rounded-3xl group-hover:scale-110 transition-transform duration-500">
-                            <TrendingDown className="w-8 h-8 text-red-600 dark:text-red-400" />
-                        </div>
-                        <div className="flex items-center gap-1 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-2 py-1 rounded-lg text-xs font-bold border border-red-100 dark:border-red-800/50">
-                            <ArrowDownRight className="w-3 h-3" />
-                            <span>Outflow</span>
-                        </div>
-                    </div>
-                    <h3 className="text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest text-xs mb-2">Total Expenses</h3>
-                    <p className="text-4xl font-bold text-red-600 dark:text-red-500 tracking-tight">
-                        {formatCurrency(data?.total_expenses || 0)}
-                    </p>
-                </div>
-
-                {/* Net Balance */}
-                <div className="motion-card group bg-indigo-600 p-8 rounded-[2.5rem] shadow-2xl shadow-slate-200 dark:shadow-black/40 transition-all duration-500 hover:shadow-indigo-300 dark:hover:shadow-black/60 hover:-translate-y-1 overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full -z-10 group-hover:bg-white/20 transition-all"></div>
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="p-4 bg-white/20 rounded-3xl group-hover:scale-110 transition-transform duration-500">
-                            <Wallet className="w-8 h-8 text-white" />
-                        </div>
-                    </div>
-                    <h3 className="text-indigo-100 font-bold uppercase tracking-widest text-xs mb-2">Net Balance</h3>
-                    <p className="text-4xl font-extrabold text-white tracking-tight">
-                        {formatCurrency(data?.net_balance || 0)}
-                    </p>
-                </div>
-            </div>
-
-            {/* Middle Section: Recent Transactions */}
-            <div className="w-full">
-                <TransactionList
-                    selectedUserId={selectedUserId}
-                    onTransactionChange={handleRefresh}
-                    userRole={userRole}
-                    categories={categories}
-                />
-            </div>
-
-            {/* Bottom Section: Category Breakdown */}
-            <div className="motion-card w-full bg-slate-50 dark:bg-slate-900 p-8 sm:p-10 rounded-[3.5rem] border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-indigo-900/10 transition-all duration-500 hover:shadow-lg dark:hover:shadow-indigo-900/20">
-                <div className="flex items-center justify-between mb-10">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl">
-                            <PieChart className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                        </div>
-                        <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Spending Breakdown</h2>
-                    </div>
-                </div>
-
-                <div className="space-y-6">
-                    {data?.category_breakdown && data.category_breakdown.length > 0 ? (
-                        data.category_breakdown.map((item, index) => {
-                            const totalAmount = data.total_expenses || 1;
-                            const percentage = (item.total / totalAmount) * 100;
-
-                            return (
-                                <div key={index} className="group relative">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="font-bold text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors uppercase tracking-wider text-xs">
-                                            {item.category_name}
-                                        </span>
-                                        <span className="font-bold text-red-600 dark:text-red-500">{formatCurrency(item.total)}</span>
-                                    </div>
-                                    <div className="h-4 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner border border-slate-50 dark:border-slate-700/50">
-                                        <div
-                                            className="h-full bg-indigo-600 dark:bg-indigo-500 rounded-full transition-all duration-1000 ease-out group-hover:bg-indigo-500 dark:group-hover:bg-indigo-400 group-hover:brightness-110"
-                                            style={{
-                                                width: `${percentage}%`,
-                                                transitionDelay: `${index * 100}ms`
-                                            }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            );
-                        })
-                    ) : (
-                        <div className="flex flex-col items-center py-10 opacity-50">
-                            <p className="font-medium text-slate-400">No category breakdown data available.</p>
-                        </div>
-                    )}
-                </div>
-            </div>
+      <div role="status" aria-label="Loading your finances" className="flex flex-col gap-7">
+        <div className="h-20 animate-pulse bg-surface" />
+        <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="h-56 animate-pulse bg-secondary" />
+          <div className="h-56 animate-pulse bg-surface" />
         </div>
+        <div className="h-72 animate-pulse bg-surface" />
+      </div>
     );
+  }
+
+  if (error && error.toLowerCase().includes('inactive')) {
+    return (
+      <section className="mx-auto flex max-w-xl flex-col items-center border border-border bg-surface px-6 py-16 text-center">
+        <span className="mb-5 flex size-12 items-center justify-center rounded-full bg-warning/10 text-warning"><LockKeyhole aria-hidden="true" className="size-5" /></span>
+        <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-warning">Account status</p>
+        <h2 className="mt-2 text-3xl">Access is unavailable</h2>
+        <p className="mt-3 max-w-sm text-[12px] leading-6 text-muted">This account is inactive, so financial data is unavailable. Contact your administrator if you think this should be changed.</p>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section role="alert" className="mx-auto flex max-w-xl flex-col items-center border border-negative/20 bg-surface px-6 py-16 text-center">
+        <AlertCircle aria-hidden="true" className="size-9 text-negative" />
+        <h2 className="mt-4 text-3xl">We couldn&apos;t load your finances</h2>
+        <p className="mt-3 text-[12px] leading-6 text-muted">Please try again. Your recorded activity has not been changed.</p>
+        <button onClick={handleRefresh} className="motion-button mt-6 inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-4 text-[11px] font-medium text-white dark:text-slate-950">
+          <RefreshCcw aria-hidden="true" className="size-4" /> Try again
+        </button>
+      </section>
+    );
+  }
+
+  const hasActivity = Boolean(data && (data.total_income !== 0 || data.total_expenses !== 0 || (data.category_breakdown?.length ?? 0) > 0));
+
+  return (
+    <div className="space-y-8">
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-moss">Personal overview</p>
+          <h2 className="mt-2 text-[2.5rem] leading-[0.98] sm:text-[3.2rem]">{data?.user_name ? `Good to see you, ${data.user_name}.` : 'Your money, in view.'}</h2>
+          <p className="mt-3 text-[12px] text-muted">A clear look at your recorded income and spending.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {userRole === 'admin' && <AdminUserSwitcher onUserSelected={setSelectedUserId} />}
+          <TransactionForm categories={categories} onSuccess={handleRefresh} targetUserId={selectedUserId} />
+          <button onClick={handleRefresh} disabled={loading} className="inline-flex min-h-10 items-center gap-2 border border-border bg-surface px-3 text-[10px] font-medium text-muted transition-colors hover:text-foreground disabled:opacity-50" aria-label="Refresh overview">
+            <RefreshCcw aria-hidden="true" className={`size-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
+          </button>
+        </div>
+      </header>
+
+      <section aria-label="Financial position" className="grid gap-px border border-border bg-border lg:grid-cols-[1.18fr_0.82fr]">
+        <div className="relative flex min-h-[220px] flex-col justify-between overflow-hidden bg-primary p-6 text-white dark:text-slate-950 sm:p-8">
+          <div aria-hidden="true" className="absolute -right-16 -top-24 size-72 rounded-full border border-white/10 dark:border-slate-950/10" />
+          <div className="relative flex items-center justify-between gap-4">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/70 dark:text-slate-950/65">Net balance</p>
+            <span className="inline-flex items-center gap-1.5 text-[9px] text-white/70 dark:text-slate-950/65"><span className={`size-1.5 rounded-full ${hasActivity ? 'bg-[#b9cfaa]' : 'bg-white/45 dark:bg-slate-950/30'}`} /> {hasActivity ? 'From your recorded activity' : 'Ready when you are'}</span>
+          </div>
+          <div className="relative mt-8">
+            <p className="money-figure break-words text-[2.65rem] leading-none sm:text-[3.5rem]">{formatCurrency(data?.net_balance || 0)}</p>
+            <p className="mt-3 max-w-sm text-[10px] leading-5 text-white/70 dark:text-slate-950/65">{hasActivity ? 'Income minus expenses, based on the activity in your account.' : 'Add your first transaction to start building a clearer picture.'}</p>
+          </div>
+        </div>
+
+        <div className="flex flex-col justify-center bg-surface px-6 py-5 sm:px-8">
+          <p className="mb-3 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted">Money in · money out</p>
+          <div className="grid gap-0 sm:grid-cols-2 sm:gap-6">
+            <div className="border-b border-border py-4 sm:border-b-0 sm:border-r sm:pr-5">
+              <div className="flex items-center gap-2 text-[10px] font-medium text-muted"><ArrowDownRight aria-hidden="true" className="size-3.5 text-positive" /> Income</div>
+              <p className="money-figure mt-2 break-words text-[1.6rem] text-positive">{formatCurrency(data?.total_income || 0)}</p>
+            </div>
+            <div className="py-4 sm:pl-1">
+              <div className="flex items-center gap-2 text-[10px] font-medium text-muted"><ArrowUpRight aria-hidden="true" className="size-3.5 text-negative" /> Expenses</div>
+              <p className="money-figure mt-2 break-words text-[1.6rem] text-negative">{formatCurrency(data?.total_expenses || 0)}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1.4fr)_minmax(240px,0.6fr)]">
+        <TransactionList selectedUserId={selectedUserId} onTransactionChange={handleRefresh} userRole={userRole} categories={categories} />
+
+        <section aria-labelledby="spending-breakdown-title" className="border-t border-border pt-5">
+          <div className="flex items-baseline justify-between gap-4 border-b border-border pb-4">
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-moss">Where it goes</p>
+              <h3 id="spending-breakdown-title" className="mt-1 text-[1.65rem]">Spending breakdown</h3>
+            </div>
+            <span className="text-[9px] text-muted">By category</span>
+          </div>
+          {data?.category_breakdown && data.category_breakdown.length > 0 ? (
+            <ul className="divide-y divide-border">
+              {data.category_breakdown.map((item, index) => {
+                const percentage = data.total_expenses > 0 ? Math.min((item.total / data.total_expenses) * 100, 100) : 0;
+                return (
+                  <li key={`${item.category_name}-${index}`} className="py-4">
+                    <div className="mb-2 flex items-baseline justify-between gap-3">
+                      <span className="truncate text-[11px] font-medium">{item.category_name}</span>
+                      <span className="money-figure shrink-0 text-[11px] text-negative">{formatCurrency(item.total)}</span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden bg-secondary" role="progressbar" aria-label={`${item.category_name} share of spending`} aria-valuenow={Math.round(percentage)} aria-valuemin={0} aria-valuemax={100}>
+                      <div className="h-full bg-primary transition-[width] duration-700" style={{ width: `${percentage}%` }} />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div className="py-8 text-[11px] leading-5 text-muted">Your category totals will appear here as you record expenses.</div>
+          )}
+          {!hasActivity && <p className="mt-3 inline-flex items-center gap-2 text-[9px] text-muted"><ShieldAlert aria-hidden="true" className="size-3.5" /> Nothing is shown until you add activity.</p>}
+        </section>
+      </div>
+    </div>
+  );
 };
 
 export default DashboardOverview;

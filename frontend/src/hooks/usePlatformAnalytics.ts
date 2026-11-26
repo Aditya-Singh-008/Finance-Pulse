@@ -1,11 +1,3 @@
-/**
- * usePlatformAnalytics.ts
- * ─────────────────────────────────────────────────────────────────────────────
- * Custom hook to fetch platform-wide analytics from the Supabase Edge Function.
- * Returns macro-level data including total users, transaction volume, and count.
- * ─────────────────────────────────────────────────────────────────────────────
- */
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
@@ -19,6 +11,29 @@ export interface PlatformAnalytics {
   daily_trends: { date: string; income: number; expense: number }[];
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
+
+const isPlatformAnalytics = (value: unknown): value is PlatformAnalytics => {
+  if (!isRecord(value)) return false;
+  const numericFields = ['total_platform_users', 'total_transaction_volume', 'platform_total_income', 'platform_total_expenses', 'total_transaction_count'];
+  if (!numericFields.every((field) => typeof value[field] === 'number')) return false;
+  if (!Array.isArray(value.category_breakdown) || !Array.isArray(value.daily_trends)) return false;
+  const categoriesValid = value.category_breakdown.every((category: unknown) => isRecord(category) && typeof category.name === 'string' && typeof category.value === 'number');
+  const trendsValid = value.daily_trends.every((trend: unknown) => isRecord(trend) && typeof trend.date === 'string' && typeof trend.income === 'number' && typeof trend.expense === 'number');
+  return categoriesValid && trendsValid;
+};
+
+const readErrorDetail = async (context: unknown): Promise<string | null> => {
+  if (!(context instanceof Response)) return null;
+  try {
+    const body: unknown = await context.clone().json();
+    if (isRecord(body) && typeof body.error === 'string') return body.error;
+  } catch {
+    return null;
+  }
+  return null;
+};
+
 export function usePlatformAnalytics() {
   const [data, setData] = useState<PlatformAnalytics | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -28,54 +43,29 @@ export function usePlatformAnalytics() {
     try {
       setLoading(true);
       setError(null);
-
-      const { data: responseBody, error: invokeError } = await supabase.functions.invoke('get-platform-analytics');
+      const { data: responseBody, error: invokeError } = await supabase.functions.invoke<unknown>('get-platform-analytics');
 
       if (invokeError) {
-        // Supabase FunctionsHttpError wraps the actual response body in context.json()
-        let message = invokeError.message;
-        
-        if ((invokeError as any).context && typeof (invokeError as any).context.json === 'function') {
-          try {
-            const errorData = await (invokeError as any).context.json();
-            message = errorData?.error || message;
-          } catch (e) {
-            // Fallback to existing if parsing fails
-          }
-        }
-        
-        throw new Error(message || 'Error recalibrating platform data');
+        const details = await readErrorDetail(invokeError.context);
+        throw new Error(details || invokeError.message || 'Analytics request failed.');
       }
 
-      console.log('DEBUG: Platform Analytics Response Body (Raw):', responseBody);
-
-      // 1. HANDLE POTENTIAL STRINGIFICATION
-      let parsed = responseBody;
-      if (typeof responseBody === 'string') {
+      let parsed: unknown = responseBody;
+      if (typeof parsed === 'string') {
         try {
-          parsed = JSON.parse(responseBody);
-        } catch (e) {
-          console.error('Failed to parse analytics JSON string', e);
+          parsed = JSON.parse(parsed) as unknown;
+        } catch {
+          throw new Error('The analytics service returned invalid JSON.');
         }
       }
 
-      // 2. UNPACK THE NESTING (Supabase invoke sometimes double-wraps data)
-      let actualMetrics = parsed;
-      // Navigate through 'data' wrappers until we find the metrics
-      while (actualMetrics?.data && typeof actualMetrics.total_platform_users === 'undefined') {
-          actualMetrics = actualMetrics.data;
-      }
-
-      // 3. Validate the unpacked metrics
-      if (!actualMetrics || typeof actualMetrics.total_platform_users === 'undefined') {
-        console.error('DEBUG: Unpacked Metrics Failed Validation:', actualMetrics);
-        throw new Error('Invalid response format from analytics service');
-      }
-      
-      setData(actualMetrics);
-    } catch (err: any) {
-      console.error('Error fetching platform analytics:', err);
-      setError(err.message || 'Failed to recalibrate platform data');
+      while (isRecord(parsed) && 'data' in parsed && !('total_platform_users' in parsed)) parsed = parsed.data;
+      if (!isPlatformAnalytics(parsed)) throw new Error('The analytics service returned an invalid response.');
+      setData(parsed);
+    } catch (requestError: unknown) {
+      const message = requestError instanceof Error ? requestError.message : 'Failed to load platform analytics.';
+      console.error('Error fetching platform analytics:', requestError);
+      setError(message);
     } finally {
       setLoading(false);
     }

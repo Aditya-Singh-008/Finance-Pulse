@@ -45,9 +45,9 @@ const AdminUserSwitcher: React.FC<AdminUserSwitcherProps> = ({ onUserSelected })
 
                 if (profileError) throw profileError;
                 setUsers(data || []);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error("Failed to load user profiles:", err);
-                setError(err.message || "Failed to load profiles list");
+                setError(err instanceof Error ? err.message : "Failed to load profiles list");
             } finally {
                 setLoading(false);
             }

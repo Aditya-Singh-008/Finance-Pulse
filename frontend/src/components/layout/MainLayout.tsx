@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import DashboardOverview from '../dashboard/DashboardOverview';
 const AnalystDashboard = React.lazy(() => import('../dashboard/AnalystDashboard'));
 import AdminUserManagement from '../dashboard/AdminUserManagement';
-import { BarChart3, ShieldCheck, Users, WalletCards } from 'lucide-react';
+import { BarChart3, Users, WalletCards } from 'lucide-react';
 
 type TabType = 'personal' | 'analyst' | 'iam';
 
@@ -34,9 +34,9 @@ const MainLayout: React.FC = () => {
 
   if (loading) {
     return (
-      <div role="status" aria-label="Loading workspace" className="space-y-4 animate-pulse">
-        <div className="h-12 w-full border border-rule bg-slate-50 dark:border-slate-800 dark:bg-slate-900" />
-        <div className="h-[520px] w-full bg-slate-50 dark:bg-slate-900" />
+      <div role="status" aria-label="Loading workspace" className="flex flex-col gap-5">
+        <div className="h-12 w-full animate-pulse border-b border-border bg-surface" />
+        <div className="h-[360px] w-full animate-pulse bg-surface" />
       </div>
     );
   }
@@ -48,26 +48,27 @@ const MainLayout: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8">
-      <div role="tablist" aria-label="Workspace views" className="flex w-full flex-wrap items-center gap-1 border-b border-rule dark:border-slate-800">
-        {tabs.filter((tab) => tab.visible).map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            id={`${id}-tab`}
-            role="tab"
-            aria-selected={activeTab === id}
-            aria-controls="workspace-panel"
-            onClick={() => setActiveTab(id)}
-            className={`motion-tab relative inline-flex min-h-11 items-center gap-2.5 px-4 text-[13px] font-medium transition-colors focus-visible:z-10 sm:px-5 ${activeTab === id ? 'text-forest dark:text-[#c7d2bb]' : 'text-slate-500 hover:text-ink dark:text-slate-300 dark:hover:text-white'}`}
-          >
-            <Icon aria-hidden="true" className="h-4 w-4" />
-            {label}
-            {activeTab === id && <span aria-hidden="true" className="absolute inset-x-3 -bottom-px h-0.5 bg-forest dark:bg-[#adbd9e]" />}
-          </button>
-        ))}
-        <div className="ml-auto hidden items-center gap-2 pb-2 pl-4 text-[10px] font-medium text-slate-500 dark:text-slate-400 md:flex">
-          <ShieldCheck aria-hidden="true" className="h-4 w-4 text-moss" />
-          {userRole ? `${userRole.charAt(0).toUpperCase()}${userRole.slice(1)} access` : 'Workspace'}
+    <div className="space-y-7">
+      <div className="flex flex-col gap-4 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-moss">Workspace</p>
+          <p className="mt-1 text-[11px] text-muted">{userRole ? `${userRole.charAt(0).toUpperCase()}${userRole.slice(1)} access` : 'Your personal finance'}</p>
+        </div>
+        <div role="tablist" aria-label="Workspace views" className="flex w-full gap-1 overflow-x-auto sm:w-auto">
+          {tabs.filter((tab) => tab.visible).map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              id={`${id}-tab`}
+              role="tab"
+              aria-selected={activeTab === id}
+              aria-controls="workspace-panel"
+              onClick={() => setActiveTab(id)}
+              className={`motion-tab inline-flex min-h-10 shrink-0 items-center gap-2 rounded-md px-3 text-[11px] font-medium transition-colors sm:px-4 ${activeTab === id ? 'bg-primary text-white dark:text-slate-950' : 'text-muted hover:bg-surface hover:text-foreground'}`}
+            >
+              <Icon aria-hidden="true" className="size-4" />
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -76,7 +77,7 @@ const MainLayout: React.FC = () => {
         {activeTab === 'analyst' && (
           <React.Suspense
             fallback={(
-              <div role="status" className="flex min-h-96 items-center justify-center text-sm font-medium text-slate-500 dark:text-slate-300">
+              <div role="status" className="flex min-h-96 items-center justify-center text-[12px] text-muted">
                 Loading analytics…
               </div>
             )}

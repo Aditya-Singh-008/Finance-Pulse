@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400..600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap");
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -7,83 +7,113 @@
   --font-sans: "Geist", system-ui, -apple-system, sans-serif;
   --font-display: "Newsreader", Georgia, serif;
 
-  --color-paper: #f5f2ea;
-  --color-ink: #252a24;
-  --color-forest: #3e5140;
-  --color-moss: #78866a;
-  --color-clay: #b87555;
-  --color-rule: #e3dfd4;
+  --color-background: #f4f2ea;
+  --color-foreground: #252a24;
+  --color-surface: #fbfaf6;
+  --color-elevated: #fffefa;
+  --color-primary: #354a3b;
+  --color-secondary: #e8e9df;
+  --color-accent: #b87555;
+  --color-muted: #6d746a;
+  --color-border: #deded4;
+  --color-positive: #417451;
+  --color-negative: #ad594b;
+  --color-warning: #9c7138;
+  --color-neutral: #69756b;
 
-  --color-slate-50: #fbfaf7;
-  --color-slate-100: #f2f0e9;
-  --color-slate-200: #e6e3d9;
-  --color-slate-300: #d3d0c5;
-  --color-slate-400: #989a90;
-  --color-slate-500: #73776d;
-  --color-slate-600: #5c6258;
-  --color-slate-700: #464d43;
-  --color-slate-800: #333b32;
-  --color-slate-900: #232923;
-  --color-slate-950: #171b17;
+  --color-paper: #f4f2ea;
+  --color-ink: #252a24;
+  --color-forest: #354a3b;
+  --color-moss: #76836c;
+  --color-clay: #b87555;
+  --color-rule: #deded4;
+
+  --color-slate-50: #fbfaf6;
+  --color-slate-100: #f0efe8;
+  --color-slate-200: #e2e1d8;
+  --color-slate-300: #d1d0c5;
+  --color-slate-400: #9a9d92;
+  --color-slate-500: #74796f;
+  --color-slate-600: #5b6258;
+  --color-slate-700: #454d44;
+  --color-slate-800: #353d35;
+  --color-slate-900: #252c26;
+  --color-slate-950: #171c18;
 
   --color-indigo-50: #eef1e9;
-  --color-indigo-100: #e2e8db;
-  --color-indigo-200: #cbd7be;
-  --color-indigo-300: #afc096;
-  --color-indigo-400: #93a77a;
-  --color-indigo-500: #788d63;
-  --color-indigo-600: #596f4e;
-  --color-indigo-700: #465a3d;
-  --color-indigo-800: #35472f;
-  --color-indigo-900: #263425;
-  --color-indigo-950: #182117;
+  --color-indigo-100: #e3e9dc;
+  --color-indigo-200: #cbd7c0;
+  --color-indigo-300: #b1c19f;
+  --color-indigo-400: #91a47c;
+  --color-indigo-500: #71845f;
+  --color-indigo-600: #536b4a;
+  --color-indigo-700: #405639;
+  --color-indigo-800: #31452e;
+  --color-indigo-900: #253624;
+  --color-indigo-950: #182218;
 
-  --color-violet-50: #f4efea;
-  --color-violet-100: #ebe1d8;
-  --color-violet-200: #dcc9b9;
-  --color-violet-300: #c9aa91;
-  --color-violet-400: #b8896c;
-  --color-violet-500: #a87859;
-  --color-violet-600: #916347;
-  --color-violet-700: #774f3a;
-  --color-violet-800: #604231;
-  --color-violet-900: #493326;
-  --color-violet-950: #2d211a;
+  --color-violet-50: #f5efea;
+  --color-violet-100: #eee2d9;
+  --color-violet-200: #dfcbbd;
+  --color-violet-300: #cba991;
+  --color-violet-400: #bd8b6c;
+  --color-violet-500: #b87555;
+  --color-violet-600: #9e6248;
+  --color-violet-700: #80503d;
+  --color-violet-800: #674333;
+  --color-violet-900: #4d352b;
+  --color-violet-950: #30231d;
 
-  --color-purple-500: #aa8267;
-  --color-purple-600: #936d53;
-  --color-purple-700: #775840;
+  --color-purple-500: #9a7e63;
+  --color-purple-600: #81684f;
+  --color-purple-700: #69533f;
 }
 
 :root {
   color-scheme: light;
-  --surface: #fbfaf7;
-  --muted: #73776d;
-  --chart-grid: #e6e3d9;
+  --surface: #fbfaf6;
+  --surface-raised: #fffefa;
+  --muted: #6d746a;
+  --rule: #deded4;
+  --chart-grid: #e5e4dc;
+  --chart-income: #536b4a;
+  --chart-expense: #b87555;
 }
 
 .dark {
   color-scheme: dark;
-  --surface: #202620;
-  --muted: #a5aa9f;
-  --chart-grid: #3a4239;
+  --surface: #222922;
+  --surface-raised: #293129;
+  --muted: #a6aa9f;
+  --rule: #3a433a;
+  --chart-grid: #3a433a;
+  --chart-income: #9aaf84;
+  --chart-expense: #d28c6c;
+  --color-background: #1b211b;
+  --color-foreground: #f1f0e9;
+  --color-surface: #222922;
+  --color-elevated: #293129;
+  --color-primary: #a8b99a;
+  --color-secondary: #343d33;
+  --color-muted: #a6aa9f;
+  --color-border: #3a433a;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
-    background: #f5f2ea;
+    background: var(--background);
   }
 
   body {
     min-width: 320px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    @apply bg-paper text-ink font-sans;
+    @apply bg-background text-foreground font-sans;
   }
 
   .dark body {
-    @apply bg-slate-950 text-slate-100 selection:bg-indigo-900 selection:text-indigo-100;
+    @apply bg-background text-foreground;
   }
 
   button,
@@ -95,8 +125,13 @@
   }
 
   :focus-visible {
-    outline: 2px solid #78866a;
+    outline: 2px solid #76836c;
     outline-offset: 3px;
+  }
+
+  ::selection {
+    background: #dce4d4;
+    color: #252a24;
   }
 }
 
@@ -110,12 +145,12 @@ h3 {
 
 @layer components {
   .motion-card {
-    transition: transform 280ms cubic-bezier(0.2, 0.75, 0.25, 1),
-      box-shadow 280ms ease, border-color 280ms ease;
+    transition: transform 260ms cubic-bezier(0.2, 0.75, 0.25, 1),
+      box-shadow 260ms ease, border-color 260ms ease;
   }
 
   .motion-icon {
-    transition: transform 280ms cubic-bezier(0.2, 0.75, 0.25, 1), color 200ms ease;
+    transition: transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1), color 180ms ease;
   }
 
   .motion-button {
@@ -124,60 +159,65 @@ h3 {
   }
 
   .motion-tab svg {
-    transition: transform 220ms ease;
+    transition: transform 180ms ease;
   }
 
   .motion-enter,
   .motion-stagger > * {
-    animation: finance-rise-in 560ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+    animation: finance-rise-in 420ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
   }
 
-  .motion-stagger > :nth-child(2) { animation-delay: 70ms; }
-  .motion-stagger > :nth-child(3) { animation-delay: 140ms; }
-  .motion-stagger > :nth-child(4) { animation-delay: 210ms; }
-  .motion-stagger > :nth-child(5) { animation-delay: 280ms; }
-  .motion-stagger > :nth-child(6) { animation-delay: 350ms; }
+  .motion-stagger > :nth-child(2) { animation-delay: 50ms; }
+  .motion-stagger > :nth-child(3) { animation-delay: 100ms; }
+  .motion-stagger > :nth-child(4) { animation-delay: 150ms; }
+  .motion-stagger > :nth-child(5) { animation-delay: 200ms; }
+  .motion-stagger > :nth-child(6) { animation-delay: 250ms; }
+
+  .money-figure {
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -0.055em;
+  }
+
+  .finance-app [class*="rounded-[2.5rem]"],
+  .finance-app [class*="rounded-[3rem]"],
+  .finance-app [class*="rounded-[3.5rem]"],
+  .finance-app [class*="rounded-[4rem]"] {
+    border-radius: 1rem !important;
+  }
 }
 
 @keyframes finance-rise-in {
-  from { opacity: 0; translate: 0 14px; }
+  from { opacity: 0; translate: 0 10px; }
   to { opacity: 1; translate: 0 0; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .motion-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 18px 40px rgba(37, 42, 36, 0.11);
-    border-color: rgba(120, 134, 106, 0.42);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px rgba(37, 42, 36, 0.09);
+    border-color: rgba(118, 131, 108, 0.42);
   }
 
-  .motion-card:hover .motion-icon {
-    transform: translateY(-2px) rotate(-5deg) scale(1.08);
+  .motion-icon:hover {
+    transform: translateY(-1px);
   }
 
   .motion-button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(62, 81, 64, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(53, 74, 59, 0.16);
   }
 
   .motion-button:active:not(:disabled) {
-    transform: scale(0.98);
+    transform: scale(0.985);
   }
 
   .motion-tab:hover svg {
-    transform: translateY(-2px) rotate(-5deg);
+    transform: translateY(-1px);
   }
 
   .motion-row:hover .motion-icon {
-    transform: scale(1.12);
+    transform: scale(1.06);
   }
-}
-
-.finance-app [class*="rounded-[2.5rem]"],
-.finance-app [class*="rounded-[3rem]"],
-.finance-app [class*="rounded-[3.5rem]"],
-.finance-app [class*="rounded-[4rem]"] {
-  border-radius: 1.35rem !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -196,15 +236,15 @@ h3 {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f2f0e9;
+  background: #f0efe8;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d3d0c5;
-  border: 3px solid #f2f0e9;
+  background: #d1d0c5;
+  border: 3px solid #f0efe8;
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #78866a;
+  background: #76836c;
 }

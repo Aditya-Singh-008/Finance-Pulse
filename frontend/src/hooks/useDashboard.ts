@@ -14,64 +14,53 @@ export interface DashboardData {
   category_breakdown: CategoryBreakdown[];
 }
 
+interface DashboardResponse {
+  data?: DashboardData;
+  error?: string;
+}
+
+const readErrorDetail = async (context: unknown): Promise<string | null> => {
+  if (!(context instanceof Response)) return null;
+  try {
+    const body: unknown = await context.clone().json();
+    if (typeof body === 'object' && body !== null && 'error' in body && typeof body.error === 'string') return body.error;
+  } catch {
+    return null;
+  }
+  return null;
+};
+
 export const useDashboard = () => {
-    // track which user's data we're viewing (default is null -> my dashboard)
-    const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-    const [data, setData] = useState<DashboardData | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-    const fetchData = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const functionName = selectedUserId 
-                ? `get-dashboard-summary?user_id=${selectedUserId}` 
-                : 'get-dashboard-summary';
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const functionName = selectedUserId ? `get-dashboard-summary?user_id=${selectedUserId}` : 'get-dashboard-summary';
+      const { data: responseBody, error: invokeError } = await supabase.functions.invoke<DashboardResponse>(functionName);
 
-            const { data: responseBody, error: invokeError } = await supabase.functions.invoke(functionName);
-            
-            if (invokeError) {
-              // Supabase FunctionsHttpError wraps the actual response body in context.json()
-              // We attempt to extract a clear message for the UI lockout check
-              let message = invokeError.message;
-              
-              if ((invokeError as any).context && typeof (invokeError as any).context.json === 'function') {
-                try {
-                  const errorData = await (invokeError as any).context.json();
-                  message = errorData?.error || message;
-                } catch (e) {
-                  // Fallback to existing message if JSON parsing fails
-                }
-              }
-              
-              throw new Error(message || 'Error recalibrating dashboard data');
-            }
-            
-            if (responseBody?.error) {
-                throw new Error(responseBody.error);
-            }
+      if (invokeError) {
+        const details = await readErrorDetail(invokeError.context);
+        throw new Error(details || invokeError.message || 'Error loading dashboard data.');
+      }
+      if (responseBody?.error) throw new Error(responseBody.error);
+      if (!responseBody?.data) throw new Error('The dashboard service returned no financial summary.');
+      setData(responseBody.data);
+    } catch (requestError: unknown) {
+      setError(requestError instanceof Error ? requestError.message : 'Error fetching dashboard data');
+      console.error('Dashboard Error:', requestError);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedUserId]);
 
-            setData(responseBody.data as DashboardData);
-        } catch (err: any) {
-            setError(err.message || 'Error fetching dashboard data');
-            console.error('Dashboard Error:', err);
-        } finally {
-            setLoading(false);
-        }
-    }, [selectedUserId]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-    // Force a re-fetch whenever the selected user ID changes
-    useEffect(() => {
-        fetchData();
-    }, [fetchData, selectedUserId]);
-
-    return { 
-        data, 
-        loading, 
-        error, 
-        refetch: fetchData,
-        selectedUserId, // Expose which user is currently being viewed
-        setSelectedUserId 
-    };
+  return { data, loading, error, refetch: fetchData, selectedUserId, setSelectedUserId };
 };

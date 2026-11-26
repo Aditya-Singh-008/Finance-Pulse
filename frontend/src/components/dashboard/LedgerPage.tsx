@@ -1,336 +1,178 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { ArrowDownRight, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, ListFilter, Search, X } from 'lucide-react';
 import { useTransactions } from '../../hooks/useTransactions';
 import type { Transaction, TransactionFilters } from '../../hooks/useTransactions';
 import { useCategories } from '../../hooks/useCategories';
-import { Link } from 'react-router-dom';
-import { 
-    ArrowLeft,
-    ArrowUpRight,
-    ArrowDownRight,
-    Search,
-    ChevronLeft,
-    ChevronRight,
-    Calendar,
-    Loader2
-} from 'lucide-react';
 
 const LedgerPage: React.FC = () => {
-    const [page, setPage] = useState(1);
-    const limit = 20;
+  const [page, setPage] = useState(1);
+  const limit = 20;
+  const { categories } = useCategories();
+  const [dateFilterMode, setDateFilterMode] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<TransactionFilters>({ type: 'all', category_id: 'all', startDate: '', endDate: '', search: '' });
 
-    const { categories } = useCategories();
-
-    const [dateFilterMode, setDateFilterMode] = useState<string>('all');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filters, setFilters] = useState<TransactionFilters>({
-        type: 'all',
-        category_id: 'all',
-        startDate: '',
-        endDate: '',
-        search: ''
-    });
-
-    // Debounce search input
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setFilters(f => {
-                if (f.search === searchTerm) return f;
-                // reset page to 1 when search fires, to avoid empty pages
-                setPage(1);
-                return { ...f, search: searchTerm };
-            });
-        }, 400);
-        return () => clearTimeout(timer);
-    }, [searchTerm]);
-
-    // reset page to 1 when a filter matches
-    const handleFilterChange = (updates: Partial<TransactionFilters>) => {
-        setFilters(f => ({ ...f, ...updates }));
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters((current) => {
+        if (current.search === searchTerm) return current;
         setPage(1);
-    };
+        return { ...current, search: searchTerm };
+      });
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-    const handleDateModeChange = (mode: string) => {
-        setDateFilterMode(mode);
-        const today = new Date();
-        
-        // Correct timezone offset for date generation (avoiding UTC bugs)
-        const toLocalISODate = (d: Date) => {
-            return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-        };
+  const handleFilterChange = (updates: Partial<TransactionFilters>) => {
+    setFilters((current) => ({ ...current, ...updates }));
+    setPage(1);
+  };
 
-        if (mode === 'all') {
-            handleFilterChange({ startDate: '', endDate: '' });
-        } else if (mode === '7days') {
-            const lastWeek = new Date();
-            lastWeek.setDate(lastWeek.getDate() - 7);
-            handleFilterChange({ 
-                startDate: toLocalISODate(lastWeek), 
-                endDate: toLocalISODate(today) 
-            });
-        } else if (mode === 'thisMonth') {
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            handleFilterChange({ 
-                startDate: toLocalISODate(firstDay), 
-                endDate: toLocalISODate(today) 
-            });
-        } else if (mode === 'lastMonth') {
-            const firstDay = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-            const lastDay = new Date(today.getFullYear(), today.getMonth(), 0);
-            handleFilterChange({ 
-                startDate: toLocalISODate(firstDay), 
-                endDate: toLocalISODate(lastDay) 
-            });
-        } else if (mode === 'custom') {
-            handleFilterChange({ startDate: '', endDate: '' });
-        }
-    };
+  const handleDateModeChange = (mode: string) => {
+    setDateFilterMode(mode);
+    const today = new Date();
+    const toLocalISODate = (date: Date) => new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0];
 
-    const { transactions, loading, error, totalCount } = useTransactions(limit, null, filters, page);
+    if (mode === 'all' || mode === 'custom') {
+      handleFilterChange({ startDate: '', endDate: '' });
+    } else if (mode === '7days') {
+      const lastWeek = new Date();
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      handleFilterChange({ startDate: toLocalISODate(lastWeek), endDate: toLocalISODate(today) });
+    } else if (mode === 'thisMonth') {
+      handleFilterChange({ startDate: toLocalISODate(new Date(today.getFullYear(), today.getMonth(), 1)), endDate: toLocalISODate(today) });
+    } else if (mode === 'lastMonth') {
+      handleFilterChange({ startDate: toLocalISODate(new Date(today.getFullYear(), today.getMonth() - 1, 1)), endDate: toLocalISODate(new Date(today.getFullYear(), today.getMonth(), 0)) });
+    }
+  };
 
-    const totalPages = Math.ceil(totalCount / limit);
+  const { transactions, loading, error, totalCount } = useTransactions(limit, null, filters, page);
+  const totalPages = Math.ceil(totalCount / limit);
+  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
+  const formatDate = (date: string) => new Date(date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+  const groupedTransactions = transactions.reduce((groups, transaction) => {
+    const month = new Date(transaction.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    (groups[month] ??= []).push(transaction);
+    return groups;
+  }, {} as Record<string, Transaction[]>);
+  const hasFilters = Boolean(filters.type !== 'all' || filters.category_id !== 'all' || filters.startDate || filters.endDate || filters.search);
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-        }).format(amount);
-    };
+  const clearFilters = () => {
+    setSearchTerm('');
+    setFilters({ type: 'all', category_id: 'all', startDate: '', endDate: '', search: '' });
+    setDateFilterMode('all');
+    setPage(1);
+  };
 
-    const formatDate = (dateStr: string) => {
-        return new Date(dateStr).toLocaleDateString('en-IN', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
-    // Group transactions by "Month Year" (e.g. "April 2026")
-    const groupedTransactions = transactions.reduce((acc, tx) => {
-        const monthYear = new Date(tx.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        if (!acc[monthYear]) acc[monthYear] = [];
-        acc[monthYear].push(tx);
-        return acc;
-    }, {} as Record<string, Transaction[]>);
-
-    return (
-        <div className="space-y-8 animate-in fade-in duration-500 w-full max-w-full">
-            <div className="flex items-center gap-4 mb-2">
-                <Link to="/dashboard" aria-label="Back to overview" className="p-2 bg-slate-100 dark:bg-slate-900 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
-                    <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                </Link>
-                <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Transaction history</h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Search and filter your income and expenses</p>
-                </div>
-            </div>
-
-            {/* Advanced Filters Section */}
-            <div className="motion-card grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 p-6 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm">
-                {/* Search */}
-                <div className="relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                    {loading && searchTerm !== filters.search && (
-                        <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400 animate-spin" />
-                    )}
-                    <input 
-                        type="text" 
-                        aria-label="Search transactions by description"
-                        placeholder="Search description..." 
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-medium"
-                    />
-                </div>
-
-                {/* Type Filter */}
-                <select 
-                    aria-label="Filter by transaction type"
-                    value={filters.type}
-                    onChange={(e) => handleFilterChange({ type: e.target.value as any })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-bold"
-                >
-                    <option value="all">Any Type</option>
-                    <option value="income">Income Only</option>
-                    <option value="expense">Expense Only</option>
-                </select>
-
-                {/* Category Filter */}
-                <select 
-                    aria-label="Filter by category"
-                    value={filters.category_id}
-                    onChange={(e) => handleFilterChange({ category_id: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-bold"
-                >
-                    <option value="all">Any Category</option>
-                    {categories.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                </select>
-
-                {/* Date Filter */}
-                <div className="flex flex-col gap-2 relative">
-                    <select 
-                        aria-label="Filter by date range"
-                        value={dateFilterMode}
-                        onChange={(e) => handleDateModeChange(e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100 font-bold"
-                    >
-                        <option value="all">Any Date</option>
-                        <option value="7days">Last 7 Days</option>
-                        <option value="thisMonth">This Month</option>
-                        <option value="lastMonth">Last Month</option>
-                        <option value="custom">Custom dates…</option>
-                    </select>
-
-                    {dateFilterMode === 'custom' && (
-                        <div className="flex gap-2 absolute top-full left-0 w-full mt-2 bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 z-20 animate-in fade-in slide-in-from-top-2">
-                            <div className="relative w-1/2">
-                                <input 
-                                    type="text" 
-                                    aria-label="Start date"
-                                    placeholder="YYYY-MM-DD"
-                                    value={filters.startDate}
-                                    onChange={(e) => handleFilterChange({ startDate: e.target.value })}
-                                    className="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-slate-700 dark:text-slate-300 font-bold"
-                                />
-                                <input 
-                                    type="date" 
-                                    aria-label="Choose start date"
-                                    value={filters.startDate}
-                                    onChange={(e) => handleFilterChange({ startDate: e.target.value })}
-                                    className="absolute right-0 top-0 w-8 h-full opacity-0 focus:opacity-100 focus-visible:ring-2 focus-visible:ring-forest cursor-pointer z-10"
-                                />
-                                <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                            </div>
-                            <div className="relative w-1/2">
-                                <input 
-                                    type="text" 
-                                    aria-label="End date"
-                                    placeholder="YYYY-MM-DD"
-                                    value={filters.endDate}
-                                    onChange={(e) => handleFilterChange({ endDate: e.target.value })}
-                                    className="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-slate-700 dark:text-slate-300 font-bold"
-                                />
-                                <input 
-                                    type="date" 
-                                    aria-label="Choose end date"
-                                    value={filters.endDate}
-                                    onChange={(e) => handleFilterChange({ endDate: e.target.value })}
-                                    className="absolute right-0 top-0 w-8 h-full opacity-0 focus:opacity-100 focus-visible:ring-2 focus-visible:ring-forest cursor-pointer z-10"
-                                />
-                                <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {loading && transactions.length === 0 ? (
-                <div className="flex justify-center py-20">
-                    <div className="animate-spin h-8 w-8 border-b-2 border-indigo-600 dark:border-indigo-400 rounded-full"></div>
-                </div>
-            ) : error ? (
-                <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-3xl text-center border border-red-200 dark:border-red-900/50">
-                    <p className="text-red-600 dark:text-red-400 font-medium">{error}</p>
-                </div>
-            ) : transactions.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 p-12 rounded-[3rem] border border-slate-100 dark:border-slate-800 text-center">
-                    <Search className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-4" />
-                    <p className="text-slate-500 dark:text-slate-400 text-lg font-medium">No transactions match this date range or filter.</p>
-                </div>
-            ) : (
-                <div className="motion-stagger space-y-10">
-                    {Object.entries(groupedTransactions).map(([month, txs]) => (
-                        <div key={month} className="motion-card bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
-                            <div className="bg-slate-50 border-b border-slate-100 dark:border-slate-800 dark:bg-slate-950/50 px-8 py-5 flex items-center gap-3">
-                                <Calendar className="w-5 h-5 text-indigo-500" />
-                                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">{month}</h2>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
-                                            <th className="px-8 py-4">Transaction</th>
-                                            <th className="px-8 py-4">Category</th>
-                                            <th className="px-8 py-4">Date</th>
-                                            <th className="px-8 py-4 text-right">Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {txs.map((tx: Transaction) => (
-                                            <tr key={tx.id} className="motion-row hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                                                <td className="px-8 py-5">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={[
-                                                            "p-2.5 rounded-xl transition-all duration-300",
-                                                            tx.type === 'income' ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" : "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400"
-                                                        ].join(' ')}>
-                                                            {tx.type === 'income' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                                                        </div>
-                                                        <div>
-                                                            <div className="font-bold text-slate-900 dark:text-slate-100">
-                                                                {tx.description || (tx.type === 'income' ? 'Received Funds' : 'Shared Payment')}
-                                                            </div>
-                                                            <div className="text-[10px] uppercase tracking-widest font-bold text-slate-500 dark:text-slate-500 mt-0.5">
-                                                                {tx.type}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-5">
-                                                    <span className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 font-bold text-[11px] rounded-lg uppercase tracking-wider border border-slate-200 dark:border-slate-800 transition-all">
-                                                        {(tx.category as any)?.name || 'General'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-8 py-5">
-                                                    <div className="font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap text-sm">
-                                                        {formatDate(tx.date)}
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-5 text-right">
-                                                    <div className={[
-                                                        "text-lg font-bold tracking-tight",
-                                                        tx.type === 'income' ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-500"
-                                                    ].join(' ')}>
-                                                        {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    ))}
-
-                    {/* Pagination Controls */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-between px-6 py-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm mt-8">
-                            <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-xs"
-                            >
-                                <ChevronLeft className="w-4 h-4" />
-                                Previous
-                            </button>
-                            <span className="text-slate-500 dark:text-slate-400 font-medium text-sm">
-                                Page <strong className="text-slate-900 dark:text-white">{page}</strong> of <strong className="text-slate-900 dark:text-white">{totalPages}</strong>
-                            </span>
-                            <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages || transactions.length < limit}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-xs"
-                            >
-                                Next
-                                <ChevronRight className="w-4 h-4" />
-                            </button>
-                        </div>
-                    )}
-                </div>
-            )}
+  return (
+    <div className="space-y-7">
+      <header className="flex flex-col gap-5 border-b border-border pb-6 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-moss">Activity workspace</p>
+          <h2 className="mt-2 text-[2.6rem] leading-[0.96] sm:text-[3.3rem]">Transactions</h2>
+          <p className="mt-3 text-[12px] text-muted">Find, filter, and review your financial activity.</p>
         </div>
-    );
+        <p className="text-[11px] text-muted" aria-live="polite">{loading ? 'Updating results…' : `${totalCount.toLocaleString('en-IN')} ${totalCount === 1 ? 'entry' : 'entries'}${hasFilters ? ' match your filters' : ''}`}</p>
+      </header>
+
+      <section aria-label="Transaction filters" className="border-b border-border pb-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1.3fr)_minmax(140px,.75fr)_minmax(160px,.9fr)_minmax(150px,.8fr)]">
+          <label className="relative block">
+            <span className="sr-only">Search transactions</span>
+            <Search aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted" />
+            <input type="search" aria-label="Search transactions by description" placeholder="Search descriptions…" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} className="min-h-11 w-full border border-border bg-surface pl-10 pr-4 text-[11px] text-foreground outline-none transition-colors placeholder:text-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/10" />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="sr-only">Transaction type</span>
+            <select aria-label="Filter by transaction type" value={filters.type || 'all'} onChange={(event) => handleFilterChange({ type: event.target.value as TransactionFilters['type'] })} className="min-h-11 w-full border border-border bg-surface px-3 text-[11px] text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10">
+              <option value="all">Any type</option><option value="income">Income only</option><option value="expense">Expenses only</option>
+            </select>
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="sr-only">Transaction category</span>
+            <select aria-label="Filter by category" value={filters.category_id || 'all'} onChange={(event) => handleFilterChange({ category_id: event.target.value })} className="min-h-11 w-full border border-border bg-surface px-3 text-[11px] text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10">
+              <option value="all">Any category</option>
+              {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="sr-only">Transaction date range</span>
+            <select aria-label="Filter by date range" value={dateFilterMode} onChange={(event) => handleDateModeChange(event.target.value)} className="min-h-11 w-full border border-border bg-surface px-3 text-[11px] text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10">
+              <option value="all">Any date</option><option value="7days">Last 7 days</option><option value="thisMonth">This month</option><option value="lastMonth">Last month</option><option value="custom">Choose dates…</option>
+            </select>
+          </label>
+        </div>
+
+        {dateFilterMode === 'custom' && (
+          <div className="mt-3 flex flex-col gap-3 border border-border bg-surface p-3 sm:flex-row sm:items-center">
+            <div className="inline-flex items-center gap-2 text-[10px] font-medium text-muted"><CalendarDays aria-hidden="true" className="size-4" /> Custom range</div>
+            <label className="flex flex-1 items-center gap-2 text-[10px] text-muted">From<input type="date" aria-label="Start date" value={filters.startDate || ''} onChange={(event) => handleFilterChange({ startDate: event.target.value })} className="min-h-9 min-w-0 flex-1 border border-border bg-background px-2 text-[11px] text-foreground" /></label>
+            <label className="flex flex-1 items-center gap-2 text-[10px] text-muted">To<input type="date" aria-label="End date" value={filters.endDate || ''} onChange={(event) => handleFilterChange({ endDate: event.target.value })} className="min-h-9 min-w-0 flex-1 border border-border bg-background px-2 text-[11px] text-foreground" /></label>
+          </div>
+        )}
+
+        {hasFilters && <button type="button" onClick={clearFilters} className="mt-3 inline-flex min-h-8 items-center gap-1.5 text-[10px] font-medium text-muted underline decoration-border underline-offset-4 transition-colors hover:text-foreground"><X aria-hidden="true" className="size-3.5" /> Clear filters</button>}
+      </section>
+
+      {error ? (
+        <div role="alert" className="border border-negative/20 bg-negative/5 px-5 py-4 text-[11px] text-negative">{error}</div>
+      ) : loading && transactions.length === 0 ? (
+        <div role="status" aria-label="Loading transactions" className="flex flex-col gap-3 py-4"><div className="h-10 animate-pulse bg-surface" /><div className="h-10 animate-pulse bg-surface" /><div className="h-10 animate-pulse bg-surface" /></div>
+      ) : transactions.length === 0 ? (
+        <div className="border-y border-border py-16 text-center">
+          <ListFilter aria-hidden="true" className="mx-auto size-7 text-muted/60" />
+          <h3 className="mt-4 text-2xl">No matching transactions</h3>
+          <p className="mt-2 text-[11px] text-muted">Try another search or adjust the date and category filters.</p>
+          {hasFilters && <button type="button" onClick={clearFilters} className="mt-4 text-[11px] font-medium text-primary underline underline-offset-4">Clear all filters</button>}
+        </div>
+      ) : (
+        <div className="space-y-7">
+          {Object.entries(groupedTransactions).map(([month, monthTransactions]) => (
+            <section key={month} aria-labelledby={`month-${month.replace(/\s/g, '-')}`}>
+              <div className="mb-2 flex items-baseline justify-between border-b border-border pb-2">
+                <h3 id={`month-${month.replace(/\s/g, '-')}`} className="text-[1.45rem]">{month}</h3>
+                <span className="text-[9px] font-medium uppercase tracking-[0.13em] text-muted">{monthTransactions.length} {monthTransactions.length === 1 ? 'entry' : 'entries'}</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[620px] border-collapse text-left">
+                  <thead>
+                    <tr className="border-b border-border text-[9px] font-semibold uppercase tracking-[0.14em] text-muted">
+                      <th scope="col" className="py-3 pr-4">Transaction</th><th scope="col" className="px-4 py-3">Category</th><th scope="col" className="px-4 py-3">Date</th><th scope="col" className="py-3 pl-4 text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {monthTransactions.map((transaction) => (
+                      <tr key={transaction.id} className="motion-row transition-colors hover:bg-surface">
+                        <td className="py-3.5 pr-4">
+                          <div className="flex items-center gap-3">
+                            <span className={`motion-icon flex size-8 shrink-0 items-center justify-center rounded-full ${transaction.type === 'income' ? 'bg-positive/10 text-positive' : 'bg-negative/10 text-negative'}`}>
+                              {transaction.type === 'income' ? <ArrowUpRight aria-hidden="true" className="size-4" /> : <ArrowDownRight aria-hidden="true" className="size-4" />}
+                            </span>
+                            <div className="min-w-0"><p className="truncate text-[11px] font-medium text-foreground">{transaction.description || (transaction.type === 'income' ? 'Received funds' : 'Shared payment')}</p><p className="mt-0.5 text-[9px] capitalize text-muted">{transaction.type}</p></div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5"><span className="text-[10px] text-muted">{transaction.category?.name || 'General'}</span></td>
+                        <td className="whitespace-nowrap px-4 py-3.5 text-[10px] text-muted">{formatDate(transaction.date)}</td>
+                        <td className={`money-figure whitespace-nowrap py-3.5 pl-4 text-right text-[12px] font-medium ${transaction.type === 'income' ? 'text-positive' : 'text-negative'}`}>{transaction.type === 'income' ? '+' : '−'}{formatCurrency(transaction.amount)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ))}
+
+          {totalPages > 1 && (
+            <nav aria-label="Transaction pages" className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+              <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1} className="inline-flex min-h-9 items-center gap-1 border border-border px-3 text-[10px] font-medium text-muted transition-colors hover:bg-surface hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"><ChevronLeft aria-hidden="true" className="size-3.5" /> Previous</button>
+              <span className="text-[10px] text-muted" aria-live="polite">Page <strong className="font-semibold text-foreground">{page}</strong> of <strong className="font-semibold text-foreground">{totalPages}</strong></span>
+              <button type="button" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page === totalPages || transactions.length < limit} className="inline-flex min-h-9 items-center gap-1 border border-border px-3 text-[10px] font-medium text-muted transition-colors hover:bg-surface hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40">Next <ChevronRight aria-hidden="true" className="size-3.5" /></button>
+            </nav>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default LedgerPage;

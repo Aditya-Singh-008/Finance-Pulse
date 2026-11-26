@@ -29,12 +29,21 @@ export interface Category {
   type?: 'income' | 'expense';
 }
 
+interface TransactionToEdit {
+  id: string;
+  amount: number;
+  type: 'income' | 'expense';
+  category_id?: string | null;
+  date: string;
+  description?: string | null;
+}
+
 interface TransactionFormProps {
   categories?: Category[];
   onSuccess: () => void;
   onCancel?: () => void;
   targetUserId?: string | null;
-  transactionToEdit?: any;
+  transactionToEdit?: TransactionToEdit | null;
 }
 
 export interface TransactionFormHandle {

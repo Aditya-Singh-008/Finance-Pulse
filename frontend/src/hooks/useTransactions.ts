@@ -1,14 +1,3 @@
-/**
- * useTransactions.ts
- * ─────────────────────────────────────────────────────────────────────────────
- * Custom hook to fetch a list of transactions for the authenticated user,
- * including their category information.
- *
- * It uses Supabase's auto-generation of types (if available) or the raw client
- * to pull the history. Includes automatic refetching support.
- * ─────────────────────────────────────────────────────────────────────────────
- */
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
@@ -18,6 +7,7 @@ export interface Transaction {
   type: 'income' | 'expense';
   date: string;
   description: string | null;
+  category_id?: string;
   category: {
     name: string;
   } | null;
@@ -31,7 +21,9 @@ export interface TransactionFilters {
   search?: string;
 }
 
-export const useTransactions = (limit: number = 5, selectedUserId: string | null = null, filters: TransactionFilters = {}, page: number = 1) => {
+const EMPTY_FILTERS: TransactionFilters = {};
+
+export const useTransactions = (limit = 5, selectedUserId: string | null = null, filters: TransactionFilters = EMPTY_FILTERS, page = 1) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,74 +36,37 @@ export const useTransactions = (limit: number = 5, selectedUserId: string | null
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Authentication required');
 
-      // Default to current user if no specific ID provided
       const targetUserId = selectedUserId || user.id;
-
       let query = supabase
         .from('transactions')
-        .select(`
-          id,
-          amount,
-          type,
-          date,
-          description,
-          category_id,
-          category:categories(name)
-        `, { count: 'exact' })
+        .select('id, amount, type, date, description, category_id, category:categories(name)', { count: 'exact' })
         .eq('user_id', targetUserId);
 
-      // Apply Filters
-      if (filters.category_id && filters.category_id !== 'all') {
-        query = query.eq('category_id', filters.category_id);
-      }
-      
-      if (filters.type && filters.type !== 'all') {
-        query = query.eq('type', filters.type);
-      }
-      
-      if (filters.startDate) {
-        query = query.gte('date', filters.startDate);
-      }
-      
-      if (filters.endDate) {
-        query = query.lte('date', filters.endDate);
-      }
-      
-      if (filters.search) {
-        query = query.ilike('description', `%${filters.search}%`);
-      }
+      if (filters.category_id && filters.category_id !== 'all') query = query.eq('category_id', filters.category_id);
+      if (filters.type && filters.type !== 'all') query = query.eq('type', filters.type);
+      if (filters.startDate) query = query.gte('date', filters.startDate);
+      if (filters.endDate) query = query.lte('date', filters.endDate);
+      if (filters.search) query = query.ilike('description', `%${filters.search}%`);
 
-      // Set pagination
       const currentPage = page || 1;
       const from = (currentPage - 1) * limit;
       const to = from + limit - 1;
+      const { data, error: queryError, count } = await query.order('date', { ascending: false }).order('created_at', { ascending: false }).range(from, to);
 
-      const { data, error: sbError, count } = await query
-        .order('date', { ascending: false })
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-      if (sbError) throw sbError;
-      
-      setTransactions((data as any) || []);
+      if (queryError) throw queryError;
+      setTransactions((data as unknown as Transaction[] | null) || []);
       if (count !== null) setTotalCount(count);
-    } catch (err: any) {
-      setError(err.message || 'Error fetching transactions');
-      console.error('Transactions Hook Error:', err);
+    } catch (requestError: unknown) {
+      setError(requestError instanceof Error ? requestError.message : 'Error fetching transactions');
+      console.error('Transactions Hook Error:', requestError);
     } finally {
       setLoading(false);
     }
-  }, [limit, selectedUserId, JSON.stringify(filters), page]); // Stringify filters to prevent effect loop
+  }, [limit, selectedUserId, filters, page]);
 
   useEffect(() => {
-    fetchTransactions();
+    void fetchTransactions();
   }, [fetchTransactions]);
 
-  return { 
-    transactions, 
-    loading, 
-    error, 
-    totalCount,
-    refetch: fetchTransactions 
-  };
+  return { transactions, loading, error, totalCount, refetch: fetchTransactions };
 };
