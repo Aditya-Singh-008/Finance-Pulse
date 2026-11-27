@@ -125,6 +125,18 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+.fp-reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 380ms cubic-bezier(0.22, 1, 0.36, 1), transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--fp-reveal-delay, 0ms);
+}
+
+.fp-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .fp-activity-row {
   transition: background-color 180ms var(--ease-shift), transform 180ms var(--ease-shift);
 }
@@ -173,6 +185,12 @@ h3 {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .fp-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 }
 
