@@ -44,7 +44,7 @@ const ThemeToggle: React.FC = () => {
             onClick={toggleTheme}
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             aria-pressed={isDark}
-            className="group relative inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-100 dark:hover:border-indigo-900/50 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 shadow-sm active:scale-95 transition-all duration-300"
+            className="group relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#e3dfd4] bg-[#fbf9f4] text-[#3e5140] transition-colors duration-200 hover:border-[#78866a] hover:bg-[#ede9de] active:scale-95 dark:border-[#3a4239] dark:bg-[#202620] dark:text-[#8da385] dark:hover:border-[#8da385] dark:hover:bg-[#2a322a]"
         >
             <div className="relative overflow-hidden overflow-hidden h-5 w-5">
                 {/* Transition sun/moon stacking */}
