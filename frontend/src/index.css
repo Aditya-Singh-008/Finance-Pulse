@@ -67,6 +67,8 @@
   --fp-brand-primary: #3e5140;
   --fp-income: #2f5d41;
   --fp-expense: #a84b38;
+  --fp-warning: #846018;
+  --fp-info: #3d6875;
   --fp-border-default: #e3dfd4;
   --ease-shift: cubic-bezier(0.2, 0.7, 0.2, 1);
   --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
@@ -83,6 +85,8 @@
   --fp-brand-primary: #8da385;
   --fp-income: #78b38a;
   --fp-expense: #d97a66;
+  --fp-warning: #d8b46b;
+  --fp-info: #8bb8c3;
   --fp-border-default: #333b32;
 }
 

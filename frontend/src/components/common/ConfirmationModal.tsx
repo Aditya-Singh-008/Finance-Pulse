@@ -5,6 +5,7 @@ interface ConfirmationModalProps {
   isOpen: boolean;
   title: string;
   message: string;
+  warning?: string;
   confirmLabel?: string;
   cancelLabel?: string;
   onConfirm: () => void;
@@ -20,6 +21,7 @@ const ConfirmationModal = ({
   isOpen,
   title,
   message,
+  warning,
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   onConfirm,
@@ -122,7 +124,7 @@ const ConfirmationModal = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirmation-modal-title"
-        aria-describedby="confirmation-modal-message"
+        aria-describedby={warning ? 'confirmation-modal-message confirmation-modal-warning' : 'confirmation-modal-message'}
         tabIndex={-1}
         className={`relative w-full max-w-md overflow-hidden rounded-[14px] border border-[var(--fp-border-default)] bg-[var(--fp-bg-surface)] transition-[opacity,transform] duration-[260ms] ease-[var(--ease-entrance)] ${isVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-3 scale-[0.98] opacity-0'}`}
       >
@@ -139,6 +141,12 @@ const ConfirmationModal = ({
           <p id="confirmation-modal-message" className="text-sm leading-6 text-slate-600 dark:text-slate-300">
             {message}
           </p>
+
+          {warning && (
+            <p id="confirmation-modal-warning" className="mt-3 rounded-[6px] border border-[color-mix(in_srgb,var(--fp-expense)_28%,transparent)] bg-[color-mix(in_srgb,var(--fp-expense)_8%,var(--fp-bg-surface))] px-3 py-2 text-sm leading-5 text-[var(--fp-expense)]">
+              <span className="font-semibold">Privilege impact: </span>{warning}
+            </p>
+          )}
 
           <div className="mt-6 flex gap-2">
             <button
