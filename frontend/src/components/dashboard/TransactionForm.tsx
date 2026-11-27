@@ -34,7 +34,7 @@ interface TransactionFormProps {
   onSuccess: () => void;
   onCancel?: () => void;
   targetUserId?: string | null;
-  transactionToEdit?: any;
+  transactionToEdit?: EditableTransaction | null;
 }
 
 export interface TransactionFormHandle {
@@ -43,12 +43,24 @@ export interface TransactionFormHandle {
 
 type TransactionType = 'income' | 'expense';
 
+const getModalExitDelay = () =>
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 260;
+
 interface FormState {
   amount: string;
   type: TransactionType;
   category_id: string;
   date: string;
   description: string;
+}
+
+interface EditableTransaction {
+  id: string;
+  amount: number;
+  type: TransactionType;
+  category_id?: string | null;
+  date: string;
+  description: string | null;
 }
 
 const getTodayISO = (): string => {
@@ -123,6 +135,8 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
 
   const panelRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const baseCategories: Category[] =
     categories && categories.length > 0 ? categories : FALLBACK_CATEGORIES;
@@ -132,11 +146,14 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
     : baseCategories;
 
   const openModal = useCallback(() => {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = null;
+    if (document.activeElement instanceof HTMLElement) {
+      returnFocusRef.current = document.activeElement;
+    }
     setIsMounted(true);
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setIsVisible(true);
-      });
+      requestAnimationFrame(() => setIsVisible(true));
     });
     setIsOpen(true);
   }, []);
@@ -155,33 +172,67 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
   }, [transactionToEdit, openModal]);
 
   const closeModal = useCallback(() => {
-    if (isSubmitting) return;
+    if (isSubmitting || closeTimerRef.current) return;
     setIsVisible(false);
-    setTimeout(() => {
+    closeTimerRef.current = window.setTimeout(() => {
       setIsMounted(false);
       setIsOpen(false);
       setForm(INITIAL_FORM_STATE);
       setSubmitError(null);
       setSubmitSuccess(false);
-      if (onCancel) onCancel();
-    }, 300);
+      onCancel?.();
+      if (returnFocusRef.current?.isConnected) returnFocusRef.current.focus();
+      returnFocusRef.current = null;
+      closeTimerRef.current = null;
+    }, getModalExitDelay());
   }, [isSubmitting, onCancel]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !isMounted) return;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeModal();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const focusableSelector = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const getFocusableElements = () =>
+      Array.from(panelRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? [])
+        .filter(element => element.getClientRects().length > 0);
+    const frame = window.requestAnimationFrame(() => getFocusableElements()[0]?.focus());
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeModal();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusableElements = getFocusableElements();
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+
+      if (!first || !last) {
+        event.preventDefault();
+        panelRef.current?.focus();
+      } else if (event.shiftKey && (document.activeElement === first || !panelRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !panelRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    document.body.style.overflow = 'hidden';
-
     return () => {
+      window.cancelAnimationFrame(frame);
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousOverflow;
     };
-  }, [isOpen, closeModal]);
+  }, [isOpen, isMounted, closeModal]);
+
+  useEffect(() => () => {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -294,10 +345,9 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
   }));
 
   const inputClass = [
-    'w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3',
-    'text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 font-medium',
-    'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent',
-    'transition-all duration-200',
+    'w-full rounded-[6px] border border-[var(--fp-border-default)] bg-[var(--fp-bg-surface)] px-4 py-3',
+    'font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--fp-brand-primary)] dark:text-slate-100 dark:placeholder-slate-500',
+    'transition-colors duration-200',
   ].join(' ');
 
   return (
@@ -309,11 +359,8 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
           aria-haspopup="dialog"
           aria-expanded={isOpen}
           className={[
-            'inline-flex items-center gap-2 px-5 py-2.5',
-            'bg-indigo-600 dark:bg-indigo-500 text-white font-bold rounded-2xl',
-            'hover:bg-indigo-700 dark:hover:bg-indigo-600 active:scale-95',
-            'transition-all duration-200 shadow-lg shadow-indigo-200 dark:shadow-indigo-950/50',
-            'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
+            'inline-flex min-h-11 items-center gap-2 rounded-[6px] bg-[var(--fp-brand-primary)] px-4',
+            'font-semibold text-white transition-[filter] hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-[var(--fp-brand-primary)] focus:ring-offset-2 dark:text-slate-950 dark:hover:brightness-110',
           ].join(' ')}
         >
           <Plus className="w-4 h-4" />
@@ -323,20 +370,17 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
 
       {isMounted && (
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="transaction-form-title"
           className={[
             'fixed inset-0 z-50 flex items-center justify-center p-4',
-            'transition-opacity duration-300',
+            'transition-opacity duration-[260ms] ease-[var(--ease-entrance)]',
             isVisible ? 'opacity-100' : 'opacity-0',
           ].join(' ')}
           onClick={closeModal}
         >
           <div
             className={[
-              'absolute inset-0 bg-slate-900/60 backdrop-blur-sm',
-              'transition-opacity duration-300',
+              'absolute inset-0 bg-black/55 backdrop-blur-sm',
+              'transition-opacity duration-[260ms] ease-[var(--ease-entrance)]',
               isVisible ? 'opacity-100' : 'opacity-0',
             ].join(' ')}
             aria-hidden="true"
@@ -344,28 +388,31 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
 
           <div
             ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="transaction-form-title"
+            aria-describedby="transaction-form-description"
+            tabIndex={-1}
             onClick={e => e.stopPropagation()}
             className={[
-              'relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2rem]',
-              'shadow-2xl shadow-slate-900/30 dark:shadow-black/60 border dark:border-slate-800',
-              'transition-all duration-300',
+              'relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-[14px] border border-[var(--fp-border-default)] bg-[var(--fp-bg-surface)]',
+              'transition-[opacity,transform] duration-[260ms] ease-[var(--ease-entrance)]',
               isVisible
                 ? 'opacity-100 scale-100 translate-y-0'
-                : 'opacity-0 scale-95 translate-y-4',
-              'overflow-hidden',
+                : 'opacity-0 scale-[0.98] translate-y-3',
             ].join(' ')}
           >
-            <div className="h-1.5 w-full bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500" />
+            <div aria-hidden="true" className="h-1 w-full bg-[var(--fp-brand-primary)]" />
 
-            <div className="flex items-center justify-between px-8 pt-7 pb-2">
+            <div className="flex items-center justify-between gap-4 px-5 pb-2 pt-6 sm:px-7">
               <div>
                 <h2
                   id="transaction-form-title"
-                  className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight"
+                  className="font-serif text-2xl tracking-[-0.02em] text-slate-900 dark:text-slate-100"
                 >
                   {isEditMode ? 'Edit Transaction' : 'New Transaction'}
                 </h2>
-                <p className="text-sm text-slate-400 dark:text-slate-500 font-medium mt-0.5">
+                <p id="transaction-form-description" className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
                   {isEditMode ? 'Update this financial record' : 'Record your income or expense'}
                 </p>
               </div>
@@ -376,11 +423,11 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
                 disabled={isSubmitting}
                 aria-label="Close form"
                 className={[
-                  'p-2 rounded-xl text-slate-400',
-                  'hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200',
+                  'flex size-11 items-center justify-center rounded-[6px] text-slate-500',
+                  'hover:bg-[var(--fp-bg-sunken)] hover:text-slate-900 dark:text-slate-300 dark:hover:text-white',
                   'transition-colors duration-150',
                   'disabled:opacity-40 disabled:cursor-not-allowed',
-                  'focus:outline-none focus:ring-2 focus:ring-indigo-500',
+                  'focus:outline-none focus:ring-2 focus:ring-[var(--fp-brand-primary)]',
                 ].join(' ')}
               >
                 <X className="w-5 h-5" />
@@ -391,11 +438,11 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
               id="transaction-form"
               onSubmit={handleSubmit}
               noValidate
-              className="px-8 pt-4 pb-8 space-y-5"
+              className="flex flex-col gap-5 px-5 pb-6 pt-4 sm:px-7 sm:pb-7"
             >
               <div>
                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
-                  Type <span className="text-red-400">*</span>
+                  Type <span className="text-[var(--fp-expense)]">*</span>
                 </label>
                 <div
                   role="radiogroup"
@@ -409,12 +456,10 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
                     aria-checked={form.type === 'income'}
                     onClick={() => handleTypeChange('income')}
                     className={[
-                      'flex items-center justify-center gap-2 py-3 rounded-2xl font-bold',
-                      'border-2 transition-all duration-200 focus:outline-none',
-                      'focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500',
+                      'flex min-h-11 items-center justify-center gap-2 rounded-[6px] border px-3 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--fp-income)]',
                       form.type === 'income'
-                        ? 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-500 text-emerald-700 dark:text-emerald-400 shadow-lg shadow-emerald-100 dark:shadow-emerald-900/40'
-                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-500 hover:border-emerald-300 hover:text-emerald-600 dark:hover:text-emerald-400',
+                        ? 'bg-[var(--fp-bg-sunken)] border-[var(--fp-income)] text-[var(--fp-income)]'
+                        : 'bg-[var(--fp-bg-surface)] border-[var(--fp-border-default)] text-slate-600 hover:border-[var(--fp-income)] dark:text-slate-300',
                     ].join(' ')}
                   >
                     <TrendingUp className="w-4 h-4" />
@@ -428,12 +473,10 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
                     aria-checked={form.type === 'expense'}
                     onClick={() => handleTypeChange('expense')}
                     className={[
-                      'flex items-center justify-center gap-2 py-3 rounded-2xl font-bold',
-                      'border-2 transition-all duration-200 focus:outline-none',
-                      'focus:ring-2 focus:ring-offset-2 focus:ring-red-500',
+                      'flex min-h-11 items-center justify-center gap-2 rounded-[6px] border px-3 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--fp-expense)]',
                       form.type === 'expense'
-                        ? 'bg-red-50 dark:bg-red-900/30 border-red-500 text-red-700 dark:text-red-400 shadow-lg shadow-red-100 dark:shadow-red-900/40'
-                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-500 hover:border-red-300 hover:text-red-600 dark:hover:text-red-400',
+                        ? 'bg-[var(--fp-bg-sunken)] border-[var(--fp-expense)] text-[var(--fp-expense)]'
+                        : 'bg-[var(--fp-bg-surface)] border-[var(--fp-border-default)] text-slate-600 hover:border-[var(--fp-expense)] dark:text-slate-300',
                     ].join(' ')}
                   >
                     <TrendingDown className="w-4 h-4" />
@@ -447,7 +490,7 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
                   htmlFor="amount"
                   className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2"
                 >
-                  Amount <span className="text-red-400">*</span>
+                  Amount <span className="text-[var(--fp-expense)]">*</span>
                 </label>
                 <div className="relative">
                   <IndianRupee
@@ -477,7 +520,7 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
                   htmlFor="category_id"
                   className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2"
                 >
-                  Category <span className="text-red-400">*</span>
+                  Category <span className="text-[var(--fp-expense)]">*</span>
                 </label>
                 <div className="relative">
                   <Tag
@@ -524,7 +567,7 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
                   htmlFor="date"
                   className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2"
                 >
-                  Date <span className="text-red-400">*</span>
+                  Date <span className="text-[var(--fp-expense)]">*</span>
                 </label>
                 <div className="relative">
                   <Calendar
@@ -579,10 +622,10 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
                   role="alert"
                   aria-live="assertive"
                   className={[
-                    'flex items-start gap-3 p-4 rounded-2xl animate-shake',
+                    'flex items-start gap-3 p-4 rounded-[6px] animate-shake',
                     submitError.toLowerCase().includes('inactive')
-                      ? 'bg-amber-50 border border-amber-200 text-amber-800'
-                      : 'bg-red-50 border border-red-200 text-red-700',
+                      ? 'border border-[var(--fp-border-default)] bg-[var(--fp-bg-sunken)] text-amber-800 dark:text-amber-300'
+                      : 'border border-[var(--fp-expense)] bg-[var(--fp-bg-sunken)] text-[var(--fp-expense)]',
                   ].join(' ')}
                 >
                   {submitError.toLowerCase().includes('inactive') ? (
@@ -599,8 +642,8 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
                   role="status"
                   aria-live="polite"
                   className={[
-                    'flex items-center gap-3 p-4 rounded-2xl',
-                    'bg-emerald-50 border border-emerald-200 text-emerald-700',
+                    'flex items-center gap-3 p-4 rounded-[6px]',
+                    'border border-[var(--fp-income)] bg-[var(--fp-bg-sunken)] text-[var(--fp-income)]',
                   ].join(' ')}
                 >
                   <CheckCircle2 className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
@@ -615,9 +658,8 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
                   onClick={closeModal}
                   disabled={isSubmitting}
                   className={[
-                    'flex-1 py-3 rounded-2xl font-bold text-slate-700',
-                    'bg-slate-100 hover:bg-slate-200 active:scale-95',
-                    'transition-all duration-200',
+                    'min-h-11 flex-1 rounded-[6px] border border-[var(--fp-border-default)] bg-[var(--fp-bg-sunken)] px-4 font-semibold text-slate-700',
+                    'transition-colors duration-200 hover:bg-[var(--fp-bg-canvas)] dark:text-slate-200',
                     'disabled:opacity-40 disabled:cursor-not-allowed',
                     'focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2',
                   ].join(' ')}
@@ -631,12 +673,10 @@ const TransactionForm = forwardRef<TransactionFormHandle, TransactionFormProps>(
                   disabled={isSubmitting || submitSuccess}
                   className={[
                     'flex-[2] flex items-center justify-center gap-2',
-                    'py-3 rounded-2xl font-bold text-white',
-                    'bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 active:scale-95',
-                    'shadow-lg shadow-indigo-200 dark:shadow-indigo-950/50',
-                    'transition-all duration-200',
+                    'min-h-11 rounded-[6px] bg-[var(--fp-brand-primary)] px-4 font-semibold text-white dark:text-slate-950',
+                    'transition-[filter] duration-200 hover:brightness-95 dark:hover:brightness-110',
                     'disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100',
-                    'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
+                    'focus:outline-none focus:ring-2 focus:ring-[var(--fp-brand-primary)] focus:ring-offset-2',
                   ].join(' ')}
                 >
                   {isSubmitting ? (

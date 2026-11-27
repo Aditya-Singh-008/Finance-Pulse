@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 
 interface ConfirmationModalProps {
@@ -12,7 +12,11 @@ interface ConfirmationModalProps {
   isDanger?: boolean;
 }
 
-const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const getModalExitDelay = () =>
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 260;
+
+const ConfirmationModal = ({
   isOpen,
   title,
   message,
@@ -21,57 +25,133 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onConfirm,
   onCancel,
   isDanger = false,
-}) => {
+}: ConfirmationModalProps) => {
   const [isMounted, setIsMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setIsMounted(true);
-      setTimeout(() => setIsVisible(true), 10);
-    } else {
-      setIsVisible(false);
-      const timer = setTimeout(() => setIsMounted(false), 300);
-      return () => clearTimeout(timer);
+      if (document.activeElement instanceof HTMLElement) {
+        previousFocusRef.current = document.activeElement;
+      }
+      let revealFrame: number | undefined;
+      const mountFrame = window.requestAnimationFrame(() => {
+        setIsMounted(true);
+        revealFrame = window.requestAnimationFrame(() => setIsVisible(true));
+      });
+      return () => {
+        window.cancelAnimationFrame(mountFrame);
+        if (revealFrame !== undefined) window.cancelAnimationFrame(revealFrame);
+      };
     }
+
+    const closeFrame = window.requestAnimationFrame(() => setIsVisible(false));
+    const timer = window.setTimeout(() => {
+      setIsMounted(false);
+      if (previousFocusRef.current?.isConnected) previousFocusRef.current.focus();
+    }, getModalExitDelay());
+    return () => {
+      window.cancelAnimationFrame(closeFrame);
+      window.clearTimeout(timer);
+    };
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const getFocusableElements = () =>
+      Array.from(panelRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? [])
+        .filter((element) => element.offsetParent !== null);
+
+    const frame = window.requestAnimationFrame(() => getFocusableElements()[0]?.focus());
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        if (isOpen) onCancel();
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+      const focusableElements = getFocusableElements();
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+
+      if (!first || !last) {
+        event.preventDefault();
+        panelRef.current?.focus();
+      } else if (event.shiftKey && (document.activeElement === first || !panelRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !panelRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen, isMounted, onCancel]);
 
   if (!isMounted) return null;
 
+  const accentClasses = isDanger
+    ? 'bg-[var(--fp-bg-sunken)] text-[var(--fp-expense)]'
+    : 'bg-[var(--fp-bg-sunken)] text-[var(--fp-brand-primary)]';
+  const confirmClasses = isDanger
+    ? 'bg-[var(--fp-expense)] text-white hover:brightness-95'
+    : 'bg-[var(--fp-brand-primary)] text-white hover:brightness-95 dark:text-slate-950 dark:hover:brightness-110';
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className={`absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+      <div
+        aria-hidden="true"
+        className={`absolute inset-0 bg-black/55 backdrop-blur-sm transition-opacity duration-[260ms] ease-[var(--ease-entrance)] ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         onClick={onCancel}
       />
-      
-      {/* Panel */}
-      <div 
-        className={`relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden transition-all duration-300 ${isVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirmation-modal-title"
+        aria-describedby="confirmation-modal-message"
+        tabIndex={-1}
+        className={`relative w-full max-w-md overflow-hidden rounded-[14px] border border-[var(--fp-border-default)] bg-[var(--fp-bg-surface)] transition-[opacity,transform] duration-[260ms] ease-[var(--ease-entrance)] ${isVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-3 scale-[0.98] opacity-0'}`}
       >
-        <div className="p-8">
-          <div className="flex items-center gap-4 mb-6">
-            <div className={`p-3 rounded-2xl ${isDanger ? 'bg-red-50 dark:bg-red-900/20 text-red-600' : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600'}`}>
-              <AlertCircle className="w-6 h-6" />
+        <div className="p-5 sm:p-6">
+          <div className="mb-4 flex items-center gap-3">
+            <div className={`flex size-10 items-center justify-center rounded-[6px] ${accentClasses}`}>
+              <AlertCircle aria-hidden="true" className="size-5" />
             </div>
-            <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">{title}</h3>
+            <h2 id="confirmation-modal-title" className="font-serif text-2xl tracking-[-0.02em] text-slate-900 dark:text-slate-100">
+              {title}
+            </h2>
           </div>
-          
-          <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-8">
+
+          <p id="confirmation-modal-message" className="text-sm leading-6 text-slate-600 dark:text-slate-300">
             {message}
           </p>
-          
-          <div className="flex gap-3">
+
+          <div className="mt-6 flex gap-2">
             <button
+              type="button"
               onClick={onCancel}
-              className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95"
+              className="min-h-11 flex-1 rounded-[6px] border border-[var(--fp-border-default)] bg-[var(--fp-bg-canvas)] px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-[var(--fp-bg-sunken)] dark:text-slate-200"
             >
               {cancelLabel}
             </button>
             <button
+              type="button"
               onClick={onConfirm}
-              className={`flex-1 px-6 py-4 text-white font-bold rounded-2xl transition-all active:scale-95 shadow-lg ${isDanger ? 'bg-red-600 hover:bg-red-700 shadow-red-100 dark:shadow-red-900/20' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100 dark:shadow-indigo-900/20'}`}
+              className={`min-h-11 flex-1 rounded-[6px] px-4 text-sm font-semibold transition-[filter] ${confirmClasses}`}
             >
               {confirmLabel}
             </button>

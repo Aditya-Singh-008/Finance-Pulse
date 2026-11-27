@@ -6,6 +6,7 @@
 @theme {
   --font-sans: "Geist", system-ui, -apple-system, sans-serif;
   --font-display: "Newsreader", Georgia, serif;
+  --font-serif: "Newsreader", Georgia, serif;
 
   --color-paper: #f5f2ea;
   --color-ink: #252a24;
@@ -60,6 +61,15 @@
   --surface: #fbfaf7;
   --muted: #73776d;
   --chart-grid: #e6e3d9;
+  --fp-bg-canvas: #f5f2ea;
+  --fp-bg-surface: #fbf9f4;
+  --fp-bg-sunken: #ede9de;
+  --fp-brand-primary: #3e5140;
+  --fp-income: #2f5d41;
+  --fp-expense: #a84b38;
+  --fp-border-default: #e3dfd4;
+  --ease-shift: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark {
@@ -67,6 +77,13 @@
   --surface: #202620;
   --muted: #a5aa9f;
   --chart-grid: #3a4239;
+  --fp-bg-canvas: #171b17;
+  --fp-bg-surface: #202620;
+  --fp-bg-sunken: #131713;
+  --fp-brand-primary: #8da385;
+  --fp-income: #78b38a;
+  --fp-expense: #d97a66;
+  --fp-border-default: #333b32;
 }
 
 @layer base {
@@ -97,6 +114,35 @@
   :focus-visible {
     outline: 2px solid #78866a;
     outline-offset: 3px;
+  }
+}
+
+.fp-num {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.fp-activity-row {
+  transition: background-color 180ms var(--ease-shift), transform 180ms var(--ease-shift);
+}
+
+.fp-row-actions {
+  opacity: 1;
+}
+
+@media (hover: hover) and (min-width: 1024px) {
+  .fp-activity-row:hover {
+    background-color: var(--fp-bg-sunken);
+    transform: translateY(-1px);
+  }
+
+  .fp-row-actions {
+    opacity: 0;
+    transition: opacity 180ms var(--ease-shift);
+  }
+
+  .fp-activity-row:hover .fp-row-actions,
+  .fp-activity-row:focus-within .fp-row-actions {
+    opacity: 1;
   }
 }
 
