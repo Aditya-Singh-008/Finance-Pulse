@@ -412,7 +412,7 @@ const AdminUserManagement: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-3 border-b border-[var(--fp-border-default)] px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-wrap gap-2" aria-label="Filter by role">
+        <div role="group" aria-label="Filter by role" className="flex flex-wrap gap-2">
           {roleFilters.map((filter) => {
             const selected = roleFilter === filter.value;
             return (
